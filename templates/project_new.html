@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h2 style="text-align:center">New Project</h2>
+  <form method="post" enctype="multipart/form-data" style="max-width:720px;margin:0 auto">
+    <label>Project Name</label>
+    <input class="form-control" name="name" required>
+
+    <label style="margin-top:8px">Start Date</label>
+    <input class="form-control" name="start_date" type="date">
+
+    <label style="margin-top:8px">End Date</label>
+    <input class="form-control" name="end_date" type="date">
+
+    <label style="margin-top:8px">Details</label>
+    <textarea class="form-control" name="details"></textarea>
+
+    <label style="margin-top:8px">Status</label>
+    <select class="form-control" name="status">
+      <option>Planned</option>
+      <option>On-going</option>
+      <option>Completed</option>
+    </select>
+
+    <label style="margin-top:8px">Upload File (optional)</label>
+    <input class="form-control" type="file" name="file">
+
+    <div style="margin-top:12px;text-align:center"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+{% endblock %}

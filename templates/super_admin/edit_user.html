@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center; font-weight:700;">Edit User</h3>
+
+  <form method="post" style="max-width:600px;margin:0 auto;">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" class="form-control" name="fullname" value="{{ user.fullname }}" required>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+    </div>
+    <div class="form-group">
+      <label>Password (leave blank to keep current)</label>
+      <input type="password" class="form-control" name="password">
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select class="form-control" name="role" required>
+        <option value="SK_Chairman" {% if user.role=='SK_Chairman' %}selected{% endif %}>SK Chairman</option>
+        <option value="Secretary" {% if user.role=='Secretary' %}selected{% endif %}>Secretary</option>
+        <option value="Treasurer" {% if user.role=='Treasurer' %}selected{% endif %}>Treasurer</option>
+        <option value="BMO" {% if user.role=='BMO' %}selected{% endif %}>BMO</option>
+        <option value="super_admin" {% if user.role=='super_admin' %}selected{% endif %}>Super Admin</option>
+      </select>
+    </div>
+
+    <div style="margin-top:20px;text-align:center;">
+      <button class="btn" type="submit">Save Changes</button>
+      <a href="{{ url_for('user_management') }}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

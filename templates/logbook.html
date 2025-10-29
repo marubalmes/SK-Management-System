@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center; font-weight:700;">Logbook</h3>
+
+  <form method="post" action="{{ url_for('logbook') }}" class="form-panel" style="max-width:860px;margin:0 auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="flex:1 1 30%">
+        <label for="first_name">First Name</label>
+        <input class="form-control" id="first_name" name="first_name" required>
+      </div>
+      <div style="flex:1 1 20%">
+        <label for="middle_name">Middle Name</label>
+        <input class="form-control" id="middle_name" name="middle_name">
+      </div>
+      <div style="flex:1 1 30%">
+        <label for="last_name">Last Name</label>
+        <input class="form-control" id="last_name" name="last_name" required>
+      </div>
+      <div style="flex:1 1 18%">
+        <label for="sitio">Sitio</label>
+        <select class="form-control" id="sitio" name="sitio">
+          <option value="">Select Sitio</option>
+          {% for s in sitios %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <div style="flex:1">
+        <label for="time_in">Time In</label>
+        <input class="form-control" id="time_in" name="time_in" type="text" placeholder="Select Time In">
+      </div>
+      <div style="flex:1">
+        <label for="time_out">Time Out</label>
+        <input class="form-control" id="time_out" name="time_out" type="text" placeholder="Select Time Out">
+      </div>
+      <div style="flex:1">
+        <label for="date">Date</label>
+        <input class="form-control" id="date" name="date" type="date" required>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label for="concern">Concern</label>
+      <textarea class="form-control" id="concern" name="concern" placeholder="Concern"></textarea>
+    </div>
+
+    <div style="margin-top:16px;text-align:center">
+      <button class="btn" type="submit">Add Entry</button>
+    </div>
+  </form>
+
+  <div style="max-width:1100px;margin:24px auto 0;display:flex;gap:12px;align-items:center;">
+    <input id="searchName" class="form-control" placeholder="Search by name..." onkeyup="filterTable()" style="width:360px">
+    <select id="filterSitio" onchange="filterTable()" class="form-control" style="width:200px">
+      <option value="">All Sitios</option>
+      {% for s in sitios %}
+      <option value="{{ s }}">{{ s }}</option>
+      {% endfor %}
+    </select>
+    <label style="margin:0 4px">From:</label>
+    <input id="fromDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+    <label style="margin:0 4px">To:</label>
+    <input id="toDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+  </div>
+
+  <div class="table-panel" style="max-width:1100px;margin:18px auto 80px;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th><th>Sitio</th><th>Time In</th><th>Time Out</th><th>Date</th><th>Concern</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td>{{ e.first_name }} {{ e.middle_name }} {{ e.last_name }}</td>
+          <td>{{ e.sitio or '' }}</td>
+          <td>{{ e.time_in or '' }}</td>
+          <td>{{ e.time_out or '' }}</td>
+          <td>{{ e.date }}</td>
+          <td>{{ e.concern or '' }}</td>
+          <td>
+            <a class="btn-outline" href="{{ url_for('logbook_edit', entry_id=e.id) }}">Edit</a>
+            <a class="btn-outline" href="#" onclick="confirmDelete(event,'{{ url_for('logbook_delete', entry_id=e.id) }}')">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Flatpickr for AM/PM Time Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+flatpickr("#time_in, #time_out", {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "h:i K", // 12-hour format
+    time_24hr: false
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/logbook_filter.js') }}"></script>
+{% endblock %}

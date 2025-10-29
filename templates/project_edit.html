@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center">Edit Project</h3>
+  <form method="post" enctype="multipart/form-data" style="max-width:720px;margin:0 auto">
+    <label>Name</label>
+    <input class="form-control" name="name" value="{{ project.name }}" required>
+
+    <label style="margin-top:8px">Start Date</label>
+    <input class="form-control" name="start_date" type="date" value="{{ project.start_date }}">
+
+    <label style="margin-top:8px">End Date</label>
+    <input class="form-control" name="end_date" type="date" value="{{ project.end_date }}">
+
+    <label style="margin-top:8px">Details</label>
+    <textarea class="form-control" name="details">{{ project.details }}</textarea>
+
+    <label style="margin-top:8px">Status</label>
+    <select class="form-control" name="status">
+      <option {% if project.status=='Planned' %}selected{% endif %}>Planned</option>
+      <option {% if project.status=='On-going' %}selected{% endif %}>On-going</option>
+      <option {% if project.status=='Completed' %}selected{% endif %}>Completed</option>
+    </select>
+
+    <label style="margin-top:8px">Upload File (optional)</label>
+    <input class="form-control" type="file" name="file">
+
+    {% if project.filename %}
+    <p>Current file: <a href="{{ url_for('uploaded_file', filename=project.filename.replace('uploads/','')) }}" target="_blank">Open File</a></p>
+    {% endif %}
+
+    <div style="margin-top:12px;text-align:center"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+{% endblock %}

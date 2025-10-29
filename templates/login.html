@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% set body_class = "login-page" %}
+{% block content %}
+
+<!-- login-background uses inline style so we can call url_for -->
+<div class="login-background" style="background-image: url('{{ url_for('static', filename='skbg.png') }}');">
+  <!-- overlay dims the background -->
+  <div class="login-overlay" aria-hidden="true"></div>
+
+  <!-- centered panel -->
+  <div class="login-panel" role="region" aria-label="Login panel">
+
+    <!-- LEFT: Welcome -->
+    <div class="login-left">
+      <h2>Welcome to<br><span>Barangay SK Santisima Cruz</span></h2>
+      <h3 class="muted">Information Management System</h3>
+      <p class="muted">Empowering transparency and efficiency within our Sangguniang Kabataan Information Management System.</p>
+    </div>
+
+    <!-- RIGHT: Login form -->
+    <div class="login-right">
+      <h2 class="login-title">Login</h2>
+
+      {# Removed duplicate flash messages — handled globally in base.html #}
+
+      <form method="post" class="login-form" novalidate>
+        <label>Username</label>
+        <input class="form-control" name="username" autocomplete="username" required>
+
+        <label>Password</label>
+        <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+
+        <button class="btn login-btn" type="submit">Login</button>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

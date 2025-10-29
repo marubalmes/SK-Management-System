@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center; font-weight:700;">Edit Logbook Entry</h3>
+
+  <form method="post" action="{{ url_for('logbook_edit', entry_id=entry.id) }}" class="form-panel" style="max-width:860px;margin:0 auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="flex:1 1 30%">
+        <label for="first_name">First Name</label>
+        <input class="form-control" id="first_name" name="first_name" value="{{ entry.first_name }}" required>
+      </div>
+      <div style="flex:1 1 20%">
+        <label for="middle_name">Middle Name</label>
+        <input class="form-control" id="middle_name" name="middle_name" value="{{ entry.middle_name }}">
+      </div>
+      <div style="flex:1 1 30%">
+        <label for="last_name">Last Name</label>
+        <input class="form-control" id="last_name" name="last_name" value="{{ entry.last_name }}" required>
+      </div>
+      <div style="flex:1 1 18%">
+        <label for="sitio">Sitio</label>
+        <select class="form-control" id="sitio" name="sitio">
+          <option value="">Select Sitio</option>
+          {% for s in sitios %}
+          <option value="{{ s }}" {% if s == entry.sitio %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <div style="flex:1">
+        <label for="time_in">Time In</label>
+        <input class="form-control" id="time_in" name="time_in" type="text" value="{{ entry.time_in or '' }}" placeholder="Select Time In">
+      </div>
+      <div style="flex:1">
+        <label for="time_out">Time Out</label>
+        <input class="form-control" id="time_out" name="time_out" type="text" value="{{ entry.time_out or '' }}" placeholder="Select Time Out">
+      </div>
+      <div style="flex:1">
+        <label for="date">Date</label>
+        <input class="form-control" id="date" name="date" type="date" value="{{ entry.date }}">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label for="concern">Concern</label>
+      <textarea class="form-control" id="concern" name="concern" placeholder="Concern">{{ entry.concern or '' }}</textarea>
+    </div>
+
+    <div style="margin-top:16px;text-align:center">
+      <button class="btn" type="submit">Save Changes</button>
+      <a href="{{ url_for('logbook') }}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<!-- Flatpickr for AM/PM Time Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+flatpickr("#time_in, #time_out", {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "h:i K",
+    time_24hr: false
+});
+</script>
+{% endblock %}

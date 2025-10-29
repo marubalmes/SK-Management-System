@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center">Reports</h3>
+  <p style="text-align:center"><a class="btn" href="{{ url_for('report_new') }}">New Report</a></p>
+
+  <div style="max-width:1100px;margin:12px auto;display:flex;gap:12px;align-items:center;">
+    <input id="searchName" class="form-control" placeholder="Search by type..." onkeyup="filterTable()" style="width:360px">
+    <label style="margin-left:auto">From:</label>
+    <input id="fromDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+    <label style="margin:0 4px">To:</label>
+    <input id="toDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+  </div>
+
+  <div class="table-panel" style="max-width:1100px;margin:18px auto;">
+    <table class="table">
+      <thead>
+        <tr><th>Type</th><th>Reported For</th><th>Notes</th><th>Uploaded</th><th>File</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr>
+          <td>{{ r.type }}</td>
+          <td>{{ r.reported_for }}</td>
+          <td>{{ r.notes or '' }}</td>
+          <td>{{ r.uploaded_at }}</td>
+          <td>
+            {% if r.filename %}
+              <a class="btn-outline" href="{{ url_for('uploaded_file', filename=r.filename.replace('uploads/','')) }}" target="_blank">Open File</a>
+            {% else %}
+              <span style="opacity:0.4">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn-outline" href="{{ url_for('report_edit', rep_id=r.id) }}">Edit</a>
+            <a class="btn-outline" href="#" onclick="confirmDelete(event, '{{ url_for('report_delete', rep_id=r.id) }}')">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/logbook_filter.js') }}"></script>
+{% endblock %}

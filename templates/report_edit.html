@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h2 style="text-align:center">{{ report and 'Edit Report' or 'New Report' }}</h2>
+
+  <form method="post" enctype="multipart/form-data" style="max-width:720px;margin:0 auto">
+    <label>Type</label>
+    <input class="form-control" name="type" value="{{ report.type if report else '' }}" required>
+
+    <label style="margin-top:8px">Reported For</label>
+    <input class="form-control" name="reported_for" value="{{ report.reported_for if report else '' }}" required>
+
+    <label style="margin-top:8px">Notes</label>
+    <textarea class="form-control" name="notes">{{ report.notes if report else '' }}</textarea>
+
+    <label style="margin-top:8px">Upload File (optional)</label>
+    <input class="form-control" type="file" name="file">
+
+    {% if report and report.filename %}
+    <p>Current file: <a href="{{ url_for('uploaded_file', filename=report.filename.replace('uploads/','')) }}" target="_blank">Open File</a></p>
+    {% endif %}
+
+    <div style="margin-top:12px;text-align:center"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+{% endblock %}

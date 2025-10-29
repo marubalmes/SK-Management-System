@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center; font-weight:700;">Add New User</h3>
+
+  <form method="post" style="max-width:600px;margin:0 auto;">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" class="form-control" name="fullname" required>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" class="form-control" name="username" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" class="form-control" name="password" required>
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select class="form-control" name="role" required>
+        <option value="">Select Role</option>
+        <option value="SK_Chairman">SK Chairman</option>
+        <option value="Secretary">Secretary</option>
+        <option value="Treasurer">Treasurer</option>
+        <option value="BMO">BMO</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+    </div>
+
+    <div style="margin-top:20px;text-align:center;">
+      <button class="btn" type="submit">Add User</button>
+      <a href="{{ url_for('user_management') }}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

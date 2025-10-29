@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center">Projects</h3>
+  <p style="text-align:center"><a class="btn" href="{{ url_for('project_new') }}">New Project</a></p>
+
+  <div style="max-width:1100px;margin:12px auto 0;display:flex;gap:12px;align-items:center;">
+    <input id="searchName" class="form-control" placeholder="Search by name..." onkeyup="filterTable()" style="width:360px">
+    <label style="margin-left:auto">From:</label>
+    <input id="fromDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+    <label style="margin:0 4px">To:</label>
+    <input id="toDate" type="date" onchange="filterTable()" class="form-control" style="width:150px">
+  </div>
+
+  <div class="table-panel" style="max-width:1100px;margin:18px auto;">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Start</th><th>End</th><th>Status</th><th>File</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for p in projects %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.start_date or '' }}</td>
+          <td>{{ p.end_date or '' }}</td>
+          <td>{{ p.status or '' }}</td>
+          <td>
+            {% if p.filename %}
+              <a class="btn-outline" href="{{ url_for('uploaded_file', filename=p.filename.replace('uploads/','')) }}" target="_blank">Open File</a>
+            {% else %}
+              <span style="opacity:0.4">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn-outline" href="{{ url_for('project_edit', proj_id=p.id) }}">Edit</a>
+            <a class="btn-outline" href="#" onclick="confirmDelete(event, '{{ url_for('project_delete', proj_id=p.id) }}')">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/logbook_filter.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <!-- Full viewport hero section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>SK Santisima Cruz</h1>
+      <p>Empowering the Youth through Digital Transparency and Community Development</p>
+      <a href="{{ url_for('login') }}" class="btn">Get Started</a>
+    </div>
+  </section>
+
+  <!-- About Us section -->
+  <div class="container section">
+    <h3>About Us</h3>
+    <p style="text-align:center;max-width:900px;margin:10px auto;color:#555">
+      The Sangguniang Kabataan (SK) of Barangay Santisima Cruz aims to strengthen youth involvement in governance and development projects.
+    </p>
+
+    <div class="cards" style="margin-top:30px">
+      <div class="card"><h4>Leadership Training</h4><p>Developing leadership skills and community participation among the youth.</p></div>
+      <div class="card"><h4>Environmental Projects</h4><p>Encouraging sustainability through clean-up drives and tree planting activities.</p></div>
+      <div class="card"><h4>Community Outreach</h4><p>Providing support for education, sports, and health through youth engagement.</p></div>
+    </div>
+  </div>
+{% endblock %}

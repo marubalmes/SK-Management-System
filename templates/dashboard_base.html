@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container dashboard-container">
+
+  <h2 class="dashboard-title">Dashboard Overview</h2>
+  <p class="muted">Welcome, {{ session.user.fullname }}!</p>
+
+  <!-- 🔹 Stats Summary -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>{{ user_projects }}</h3>
+      <p>Your Uploaded Projects</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ user_reports }}</h3>
+      <p>Your Uploaded Reports</p>
+    </div>
+  </div>
+
+  <!-- 🔹 Chart Section -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h4>Project Status Distribution</h4>
+      <div class="chart-container">
+        <canvas id="projectChart" width="380" height="240"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h4>Logbook Entries (This Month)</h4>
+      <div class="chart-container">
+        <canvas id="logbookChart" width="380" height="240"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h4>Report Categories</h4>
+      <div class="chart-container">
+        <canvas id="reportChart" width="380" height="240"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 Quick Links -->
+  <div class="section quick-links">
+    <h3>Quick Access</h3>
+    <div class="link-grid">
+      <div class="link-card">
+        <h4>Project Management</h4>
+        <p>View and manage ongoing SK projects.</p>
+        <a href="{{ url_for('projects') }}" class="btn">Go to Projects</a>
+      </div>
+      <div class="link-card">
+        <h4>Logbook</h4>
+        <p>Monitor all activity records and attendance.</p>
+        <a href="{{ url_for('logbook') }}" class="btn">Open Logbook</a>
+      </div>
+      <div class="link-card">
+        <h4>Reports</h4>
+        <p>Access, upload, and manage SK reports.</p>
+        <a href="{{ url_for('reports') }}" class="btn">Open Records</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const projectData = {{ project_data|tojson }};
+  const logbookData = {{ logbook_data|tojson }};
+  const reportData = {{ report_data|tojson }};
+
+  // 🥧 Project Chart
+  const projCtx = document.getElementById('projectChart');
+  if (projCtx) {
+    new Chart(projCtx, {
+      type: 'pie',
+      data: {
+        labels: projectData.map(d => d.status),
+        datasets: [{
+          data: projectData.map(d => d.count),
+          backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+
+  // 📈 Logbook Line Chart
+  const logCtx = document.getElementById('logbookChart');
+  if (logCtx) {
+    new Chart(logCtx, {
+      type: 'line',
+      data: {
+        labels: logbookData.map(d => d.log_date),
+        datasets: [{
+          label: 'Entries per Day',
+          data: logbookData.map(d => d.count),
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0,123,255,0.15)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: {
+          y: { beginAtZero: true },
+          x: { ticks: { autoSkip: true, maxRotation: 0 } }
+        }
+      }
+    });
+  }
+
+  // 📊 Reports Bar Chart
+  const repCtx = document.getElementById('reportChart');
+  if (repCtx) {
+    new Chart(repCtx, {
+      type: 'bar',
+      data: {
+        labels: reportData.map(d => d.type),
+        datasets: [{
+          label: 'Total Reports',
+          data: reportData.map(d => d.count),
+          backgroundColor: '#17a2b8'
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+});
+</script>
+
+<style>
+/* 🌟 Dashboard Layout */
+.dashboard-container {
+  padding: 30px;
+  animation: fadeIn 0.4s ease-in;
+}
+.dashboard-title {
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+/* 🔹 Stats Summary */
+.stats-grid {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  padding: 20px;
+  transition: transform 0.2s ease;
+}
+.stat-card:hover { transform: translateY(-4px); }
+.stat-card h3 { color: #ff9800; font-size: 32px; margin: 0; }
+
+/* 🔹 Chart Section */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+}
+.chart-card h4 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.chart-container {
+  width: 380px;
+  height: 240px;
+  margin: 0 auto;
+}
+
+/* 🔹 Quick Links */
+.link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.link-card {
+  flex: 1;
+  min-width: 250px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  text-align: center;
+}
+.link-card h4 { margin-bottom: 8px; }
+.link-card p { color: #555; margin-bottom: 12px; }
+.link-card .btn {
+  background: #ff9800;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+.link-card .btn:hover {
+  background: #e65100;
+}
+
+/* 🌙 Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Chairman Dashboard | SK Santisima Cruz{% endblock %}
+
+{% block content %}
+<h1>Chairman Dashboard</h1>
+<p>Welcome, SK Chairman! Manage your projects and view logbook entries below.</p>
+
+<div class="dashboard-grid">
+  <div class="card">
+    <i class="fas fa-folder-open"></i>
+    <h3>Project Management</h3>
+    <p>View and manage ongoing SK projects.</p>
+    <a href="{{ url_for('projects') }}" class="btn">Go to Projects</a>
+  </div>
+
+  <div class="card">
+    <i class="fas fa-book"></i>
+    <h3>Logbook</h3>
+    <p>Monitor all activity records and attendance.</p>
+    <a href="{{ url_for('logbook') }}" class="btn">Open Logbook</a>
+  </div>
+  <div class="card">
+    <i class="fas fa-book"></i>
+    <h3>Reports</h3>
+    <p>Monitor all activity records and attendance.</p>
+    <a href="{{ url_for('reports') }}" class="btn">Open Records</a>
+  </div>
+</div>
+{% endblock %}

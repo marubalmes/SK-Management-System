@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <h3 style="text-align:center; font-weight:700;">User Management</h3>
+
+  <div style="text-align:right;margin-bottom:10px;">
+    <a href="{{ url_for('add_user') }}" class="btn"><i class="fas fa-user-plus"></i> Add User</a>
+  </div>
+
+  <table class="table" style="width:100%;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.fullname }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.role }}</td>
+        <td>
+          <a href="{{ url_for('edit_user_account', user_id=user.id) }}" class="btn-outline"><i class="fas fa-edit"></i> Edit</a>
+          <a href="#" class="btn-outline" onclick="confirmDelete(event, '{{ url_for('delete_user', user_id=user.id) }}')">
+            <i class="fas fa-trash"></i> Delete
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function confirmDelete(event, url) {
+  event.preventDefault();
+  if (confirm("Are you sure you want to delete this user?")) {
+    window.location.href = url;
+  }
+}
+</script>
+{% endblock %}

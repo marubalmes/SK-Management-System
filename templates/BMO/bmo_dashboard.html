@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="app-base">
+  <aside class="sidebar">
+    <div class="side-brand"><img src="/static/sk.png"><strong>SK Santisima Cruz</strong></div>
+    <nav class="side-nav">
+      <a href="{{ url_for('logbook') }}" class="active">Logbook</a>
+    </nav>
+  </aside>
+
+  <main class="main-content container">
+    <h3>BMO Dashboard</h3>
+    <p class="muted">BMO access currently limited to the logbook system.</p>
+    <div style="margin-top:12px"><a class="btn" href="{{ url_for('logbook') }}">Open Logbook</a></div>
+  </main>
+</div>
+{% endblock %}
