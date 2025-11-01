@@ -1,240 +1,392 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container dashboard-container">
+<div class="app-shell">
+  <!-- Main white content panel -->
+  <aside class="content-panel">
 
-  <h2 class="dashboard-title">Dashboard Overview</h2>
-  <p class="muted">Welcome, {{ session.user.fullname }}!</p>
+    <!-- Top header area -->
+    <header class="panel-header">
+      <div>
+        <h1 class="panel-title">Dashboard</h1>
+        <p class="panel-sub">Welcome back, {{ session.user.fullname }}.</p>
+      </div>
 
-  <!-- 🔹 Stats Summary -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h3>{{ user_projects }}</h3>
-      <p>Your Uploaded Projects</p>
-    </div>
-    <div class="stat-card">
-      <h3>{{ user_reports }}</h3>
-      <p>Your Uploaded Reports</p>
-    </div>
-  </div>
+      <div class="header-actions">
+        <div class="stat-mini">
+          <div class="stat-label">Your Projects</div>
+          <div class="stat-value">{{ user_projects }}</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-label">Your Reports</div>
+          <div class="stat-value">{{ user_reports }}</div>
+        </div>
+      </div>
+    </header>
 
-  <!-- 🔹 Chart Section -->
-  <div class="charts-grid">
-    <div class="chart-card">
-      <h4>Project Status Distribution</h4>
-      <div class="chart-container">
-        <canvas id="projectChart" width="380" height="240"></canvas>
-      </div>
-    </div>
+    <!-- Top area: left overview + charts carousel -->
+    <section class="top-grid">
+      <!-- Left overview card (big visual card like the reference) -->
+      <div class="overview-card">
+        <div class="overview-inner">
+          <h2 class="overview-title">SK Santisima Cruz</h2>
+          <p class="overview-sub">Empowering the Youth through Digital Transparency & Community Development</p>
 
-    <div class="chart-card">
-      <h4>Logbook Entries (This Month)</h4>
-      <div class="chart-container">
-        <canvas id="logbookChart" width="380" height="240"></canvas>
-      </div>
-    </div>
+          <div class="overview-stats">
+            <div>
+              <div class="overview-num">{{ user_projects }}</div>
+              <div class="overview-label">Projects you uploaded</div>
+            </div>
+            <div>
+              <div class="overview-num">{{ user_reports }}</div>
+              <div class="overview-label">Reports you uploaded</div>
+            </div>
+          </div>
 
-    <div class="chart-card">
-      <h4>Report Categories</h4>
-      <div class="chart-container">
-        <canvas id="reportChart" width="380" height="240"></canvas>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- 🔹 Quick Links -->
-  <div class="section quick-links">
-    <h3>Quick Access</h3>
-    <div class="link-grid">
-      <div class="link-card">
-        <h4>Project Management</h4>
-        <p>View and manage ongoing SK projects.</p>
-        <a href="{{ url_for('projects') }}" class="btn">Go to Projects</a>
+      <!-- Right: Charts carousel -->
+      <div class="charts-panel">
+        <div class="charts-header">
+          <h3>Insights</h3>
+          <div class="carousel-controls" aria-hidden="false">
+            <button id="prevSlide" class="carousel-btn" aria-label="Previous chart">‹</button>
+            <div id="dotContainer" class="dots"></div>
+            <button id="nextSlide" class="carousel-btn" aria-label="Next chart">›</button>
+          </div>
+        </div>
+
+        <div id="chartsCarousel" class="charts-carousel">
+          <!-- Slide 1: Pie (project status) -->
+          <div class="chart-slide" data-index="0">
+            <div class="chart-card">
+              <h4>Project Status Distribution</h4>
+              <canvas id="projectChart" width="480" height="320"></canvas>
+            </div>
+          </div>
+
+          <!-- Slide 2: Line (logbook) -->
+          <div class="chart-slide" data-index="1">
+            <div class="chart-card">
+              <h4>Logbook Entries (This Month)</h4>
+              <canvas id="logbookChart" width="480" height="320"></canvas>
+            </div>
+          </div>
+
+          <!-- Slide 3: Bar (reports) -->
+          <div class="chart-slide" data-index="2">
+            <div class="chart-card">
+              <h4>Report Categories</h4>
+              <canvas id="reportChart" width="480" height="320"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="link-card">
-        <h4>Logbook</h4>
-        <p>Monitor all activity records and attendance.</p>
-        <a href="{{ url_for('logbook') }}" class="btn">Open Logbook</a>
+    </section>
+
+    <!-- Quick Access (moved to the bottom area) -->
+    <section class="quick-access">
+      <h3>Quick Access</h3>
+      <div class="quick-grid">
+        <div class="quick-card">
+          <div class="quick-icon">📁</div>
+          <div class="quick-meta">
+            <h4>Project Management</h4>
+            <p>View and manage ongoing SK projects.</p>
+          </div>
+          <a class="quick-btn" href="{{ url_for('projects') }}">Go to Projects</a>
+        </div>
+
+        <div class="quick-card">
+          <div class="quick-icon">📘</div>
+          <div class="quick-meta">
+            <h4>Logbook</h4>
+            <p>Monitor all activity records and attendance.</p>
+          </div>
+          <a class="quick-btn" href="{{ url_for('logbook') }}">Open Logbook</a>
+        </div>
+
+        <div class="quick-card">
+          <div class="quick-icon">📝</div>
+          <div class="quick-meta">
+            <h4>Reports</h4>
+            <p>Access, upload, and manage SK reports.</p>
+          </div>
+          <a class="quick-btn" href="{{ url_for('reports') }}">Open Records</a>
+        </div>
       </div>
-      <div class="link-card">
-        <h4>Reports</h4>
-        <p>Access, upload, and manage SK reports.</p>
-        <a href="{{ url_for('reports') }}" class="btn">Open Records</a>
-      </div>
-    </div>
-  </div>
+    </section>
+
+  </aside>
 </div>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const projectData = {{ project_data|tojson }};
-  const logbookData = {{ logbook_data|tojson }};
-  const reportData = {{ report_data|tojson }};
+/* ========== Data from server ========== */
+const projectData = {{ project_data|tojson }};
+const logbookData = {{ logbook_data|tojson }};
+const reportData = {{ report_data|tojson }};
 
-  // 🥧 Project Chart
-  const projCtx = document.getElementById('projectChart');
-  if (projCtx) {
-    new Chart(projCtx, {
-      type: 'pie',
-      data: {
-        labels: projectData.map(d => d.status),
-        datasets: [{
-          data: projectData.map(d => d.count),
-          backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } }
-      }
+/* ========== Carousel logic ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  const slides = Array.from(document.querySelectorAll('.chart-slide'));
+  const dotsContainer = document.getElementById('dotContainer');
+  const prevBtn = document.getElementById('prevSlide');
+  const nextBtn = document.getElementById('nextSlide');
+  let active = 0;
+
+  function renderDots() {
+    dotsContainer.innerHTML = '';
+    slides.forEach((s, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot' + (i === active ? ' active' : '');
+      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      d.addEventListener('click', () => { goTo(i); });
+      dotsContainer.appendChild(d);
     });
   }
 
-  // 📈 Logbook Line Chart
-  const logCtx = document.getElementById('logbookChart');
-  if (logCtx) {
-    new Chart(logCtx, {
-      type: 'line',
-      data: {
-        labels: logbookData.map(d => d.log_date),
-        datasets: [{
-          label: 'Entries per Day',
-          data: logbookData.map(d => d.count),
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0,123,255,0.15)',
-          tension: 0.3,
-          fill: true,
-          pointRadius: 4
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        responsive: true,
-        plugins: { legend: { display: true, position: 'top' } },
-        scales: {
-          y: { beginAtZero: true },
-          x: { ticks: { autoSkip: true, maxRotation: 0 } }
-        }
-      }
+  function updateSlides() {
+    slides.forEach((s, i) => {
+      s.style.display = i === active ? 'block' : 'none';
     });
+    // update dots active class
+    Array.from(dotsContainer.children).forEach((d, i) => d.classList.toggle('active', i === active));
+    // ensure Chart.js charts get resized if needed
+    if (window._charts) {
+      window._charts.forEach(c => c.resize && c.resize());
+    }
   }
 
-  // 📊 Reports Bar Chart
-  const repCtx = document.getElementById('reportChart');
-  if (repCtx) {
-    new Chart(repCtx, {
-      type: 'bar',
-      data: {
-        labels: reportData.map(d => d.type),
-        datasets: [{
-          label: 'Total Reports',
-          data: reportData.map(d => d.count),
-          backgroundColor: '#17a2b8'
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        responsive: true,
-        plugins: { legend: { display: true, position: 'top' } },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
+  function goTo(i) {
+    active = (i + slides.length) % slides.length;
+    updateSlides();
   }
+  prevBtn.addEventListener('click', () => goTo(active - 1));
+  nextBtn.addEventListener('click', () => goTo(active + 1));
+
+  renderDots();
+  updateSlides();
+
+  // Initialize charts after carousel setup
+  initCharts();
 });
+
+/* ========== Chart initialization (fixed sizes) ========== */
+function initCharts(){
+  window._charts = window._charts || [];
+
+  // Project pie chart
+  const pCtx = document.getElementById('projectChart').getContext('2d');
+  const pLabels = projectData.map(d => d.status || 'Unknown');
+  const pValues = projectData.map(d => d.count || 0);
+  const projectChart = new Chart(pCtx, {
+    type: 'pie',
+    data: {
+      labels: pLabels,
+      datasets: [{
+        data: pValues,
+        backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545'],
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+  window._charts.push(projectChart);
+
+  // Logbook line chart
+  const lCtx = document.getElementById('logbookChart').getContext('2d');
+  const lLabels = logbookData.map(d => d.log_date);
+  const lValues = logbookData.map(d => d.count);
+  const logbookChart = new Chart(lCtx, {
+    type: 'line',
+    data: {
+      labels: lLabels,
+      datasets: [{
+        label: 'Entries / day',
+        data: lValues,
+        borderColor: '#ff9800',
+        backgroundColor: 'rgba(255,152,0,0.08)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: { display: true, ticks: { maxRotation: 30, minRotation: 10 } },
+        y: { beginAtZero: true }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+  window._charts.push(logbookChart);
+
+  // Reports bar chart
+  const rCtx = document.getElementById('reportChart').getContext('2d');
+  const rLabels = reportData.map(d => d.type || 'Unknown');
+  const rValues = reportData.map(d => d.count || 0);
+  const reportChart = new Chart(rCtx, {
+    type: 'bar',
+    data: {
+      labels: rLabels,
+      datasets: [{
+        label: 'Total Reports',
+        data: rValues,
+        backgroundColor: '#17a2b8'
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: { ticks: { maxRotation: 30 } },
+        y: { beginAtZero: true }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+  window._charts.push(reportChart);
+}
 </script>
 
 <style>
-/* 🌟 Dashboard Layout */
-.dashboard-container {
-  padding: 30px;
-  animation: fadeIn 0.4s ease-in;
-}
-.dashboard-title {
-  font-weight: 700;
-  font-size: 28px;
-  margin-bottom: 10px;
-}
-
-/* 🔹 Stats Summary */
-.stats-grid {
+/* ===== Overall shell ===== */
+.app-shell {
   display: flex;
-  gap: 20px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-}
-.stat-card {
-  flex: 1;
-  min-width: 200px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  text-align: center;
-  padding: 20px;
-  transition: transform 0.2s ease;
-}
-.stat-card:hover { transform: translateY(-4px); }
-.stat-card h3 { color: #ff9800; font-size: 32px; margin: 0; }
-
-/* 🔹 Chart Section */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 25px;
-  margin-bottom: 40px;
-}
-.chart-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-}
-.chart-card h4 {
-  font-size: 18px;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-.chart-container {
-  width: 380px;
-  height: 240px;
-  margin: 0 auto;
+  justify-content: center;
+  padding: 28px;
 }
 
-/* 🔹 Quick Links */
-.link-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.link-card {
-  flex: 1;
-  min-width: 250px;
+/* content panel (white rounded card) */
+.content-panel{
+  width: min(1200px, 96%);
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-  text-align: center;
-}
-.link-card h4 { margin-bottom: 8px; }
-.link-card p { color: #555; margin-bottom: 12px; }
-.link-card .btn {
-  background: #ff9800;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: 0.2s ease;
-}
-.link-card .btn:hover {
-  background: #e65100;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
-/* 🌙 Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* header */
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:22px 30px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.panel-title{ font-size:20px; margin:0; font-weight:700; color:#333; }
+.panel-sub{ margin:4px 0 0; color:#666; font-size:13px; }
+
+.header-actions {display:flex; gap:12px; align-items:center;}
+.stat-mini{ text-align:center; padding:8px 12px; background:#fff; border-radius:8px; }
+.stat-mini .stat-label{ color:#777; font-size:12px; }
+.stat-mini .stat-value{ color:#ff9800; font-weight:700; font-size:18px; }
+
+/* top grid */
+.top-grid{
+  display:grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap:28px;
+  padding:24px 32px;
+  align-items:start;
+}
+
+/* overview card */
+.overview-card{
+  background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.98) 100%);
+  border-radius:12px;
+  padding:28px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+.overview-inner{ display:flex; flex-direction:column; gap:18px; height:100%; }
+.overview-title{ font-size:26px; margin:0; color:#333; }
+.overview-sub{ color:#666; margin:0; font-size:14px; }
+.overview-stats{ display:flex; gap:18px; margin-top:8px; }
+.overview-num{ font-size:26px; color:#ff9800; font-weight:700; }
+.overview-label{ color:#666; font-size:13px; }
+
+/* cta */
+.cta{
+  display:inline-block;
+  margin-top:auto;
+  background:#ff9800;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  width:max-content;
+}
+
+/* charts panel */
+.charts-panel{ display:flex; flex-direction:column; gap:12px; }
+.charts-header{ display:flex; justify-content:space-between; align-items:center; }
+.charts-header h3{ margin:0; color:#333; font-size:16px; }
+.carousel-controls{ display:flex; align-items:center; gap:10px; }
+.carousel-btn{ border:0; background:transparent; font-size:20px; padding:6px 10px; cursor:pointer; color:#666; }
+.carousel-btn:hover{ color:#ff9800; }
+
+/* dots */
+.dots{ display:flex; gap:6px; align-items:center; }
+.dot{
+  width:10px; height:10px; border-radius:50%; background:#e0e0e0; border:0; cursor:pointer;
+}
+.dot.active{ background:#ff9800; }
+
+/* carousel area */
+.charts-carousel{ min-height:360px; display:block; position:relative; }
+.chart-slide{ display:none; }
+.chart-card{
+  background:#fff;
+  border-radius:10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  padding:18px;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+
+/* quick access bottom */
+.quick-access{ padding:12px 32px 28px; border-top:1px solid rgba(0,0,0,0.04); }
+.quick-access h3{ margin:0 0 12px; color:#333; }
+.quick-grid{ display:flex; gap:18px; flex-wrap:wrap; }
+.quick-card{
+  flex:1; min-width:250px;
+  background:#fff;
+  border-radius:10px;
+  padding:16px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+.quick-icon{ font-size:30px; }
+.quick-meta h4{ margin:0; font-size:16px; }
+.quick-meta p{ margin:4px 0 0; color:#666; font-size:13px; }
+.quick-btn{
+  margin-left:auto;
+  background:transparent;
+  color:#ff9800;
+  border: 2px solid #ff9800;
+  padding:8px 12px;
+  border-radius:8px;
+  text-decoration:none;
+}
+.quick-btn:hover{ background:#ff9800; color:#fff; }
+
+/* responsive */
+@media (max-width:1100px){
+  .top-grid{ grid-template-columns: 1fr; }
+  .charts-panel{ order:2; }
+  .overview-card{ order:1; }
+  .content-panel{ width:98%; }
 }
 </style>
 

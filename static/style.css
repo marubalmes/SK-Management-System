@@ -1689,3 +1689,75 @@ form textarea {
 .btn-submit:hover {
     background-color: #e56f00;
 }
+/* 🔸 Topbar Layout */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ff9800; /* Orange theme */
+  color: white;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 🔸 Left Logo and Menu Button Alignment */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  height: 38px;
+  width: auto;
+}
+
+/* ✅ Move the Hamburger Button to the LEFT SIDE of the Topbar */
+.menu-btn {
+  position: absolute;
+  left: 20px;          /* Push it to the far left */
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.menu-btn:hover {
+  color: #fff3e0;
+  transform: scale(1.1);
+}
+
+/* Adjust logo title so it doesn't overlap */
+.topbar .logo {
+  margin-left: 50px; /* create space for the menu button */
+}
+
+/* 🔸 Right side (user info + logout) */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.logout-link {
+  background: #ff9800;
+  color: #ff9800;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.logout-link:hover {
+  background: #ffe0b2;
+}

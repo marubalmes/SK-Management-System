@@ -21,8 +21,6 @@
     <div class="login-right">
       <h2 class="login-title">Login</h2>
 
-      {# Removed duplicate flash messages — handled globally in base.html #}
-
       <form method="post" class="login-form" novalidate>
         <label>Username</label>
         <input class="form-control" name="username" autocomplete="username" required>
@@ -31,10 +29,36 @@
         <input class="form-control" type="password" name="password" autocomplete="current-password" required>
 
         <button class="btn login-btn" type="submit">Login</button>
-
       </form>
     </div>
   </div>
+
+  <!-- 🔹 Close button (top-left) -->
+  <a href="{{ url_for('index') }}" class="close-btn" title="Back to Home">✕</a>
 </div>
+
+<style>
+/* 🔸 Close Button Styling */
+.close-btn {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  font-size: 26px;
+  color: white;
+  background: rgba(0, 0, 0, 0.4);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 50%;
+  transition: 0.2s ease;
+  font-weight: bold;
+  z-index: 9999; /* ensures it's above overlay and login box */
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+</style>
 
 {% endblock %}
