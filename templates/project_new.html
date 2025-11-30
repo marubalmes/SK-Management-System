@@ -1,31 +1,98 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container section panel">
-  <h2 style="text-align:center">New Project</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h3 style="margin: 0;">Create New Project</h3>
+    <a class="btn" href="{{ url_for('projects') }}?sidebar=open" style="margin-left: auto;">← Back to Projects</a>
+  </div>
+
   <form method="post" enctype="multipart/form-data" style="max-width:720px;margin:0 auto">
-    <label>Project Name</label>
-    <input class="form-control" name="name" required>
+    <div class="form-group">
+      <label>Project Name *</label>
+      <input class="form-control" name="name" placeholder="Enter project name" required>
+    </div>
 
-    <label style="margin-top:8px">Start Date</label>
-    <input class="form-control" name="start_date" type="date">
+    <div class="form-group">
+      <label>Start Date</label>
+      <input class="form-control" name="start_date" type="date">
+    </div>
 
-    <label style="margin-top:8px">End Date</label>
-    <input class="form-control" name="end_date" type="date">
+    <div class="form-group">
+      <label>End Date</label>
+      <input class="form-control" name="end_date" type="date">
+    </div>
 
-    <label style="margin-top:8px">Details</label>
-    <textarea class="form-control" name="details"></textarea>
+    <div class="form-group">
+      <label>Project Details</label>
+      <textarea class="form-control" name="details" rows="4" placeholder="Describe the project objectives, scope, target beneficiaries, and other relevant details..."></textarea>
+    </div>
 
-    <label style="margin-top:8px">Status</label>
-    <select class="form-control" name="status">
-      <option>Planned</option>
-      <option>On-going</option>
-      <option>Completed</option>
-    </select>
+    <div class="form-group">
+      <label>Status</label>
+      <select class="form-control" name="status">
+        <option value="Planned">Planned</option>
+        <option value="On-going">On-going</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
 
-    <label style="margin-top:8px">Upload File (optional)</label>
-    <input class="form-control" type="file" name="file">
+    <div class="form-group">
+      <label>Upload Project Document (optional)</label>
+      <input class="form-control" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv">
+      <small style="color: #666;">Allowed formats: PDF, DOC, DOCX, JPG, PNG, XLSX, CSV</small>
+    </div>
 
-    <div style="margin-top:12px;text-align:center"><button class="btn" type="submit">Save</button></div>
+    <!-- Project Creation Guidelines -->
+    <div class="card" style="margin: 20px 0; background: #e8f4fd; border-left: 4px solid #2196F3;">
+      <h4 style="margin-top: 0; color: #1565C0;">
+        <i data-lucide="info" style="width:18px;height:18px;"></i> Project Creation Guidelines
+      </h4>
+      <ul style="margin: 10px 0; padding-left: 20px; color: #1565C0;">
+        <li>Provide clear project details for better tracking</li>
+        <li>Set realistic start and end dates</li>
+        <li>Upload relevant documents (proposals, budgets, etc.)</li>
+        <li>After creation, you can add progress updates and link reports</li>
+        <li>SK Chairman approval will be required for project execution</li>
+      </ul>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn" type="submit" style="padding: 10px 24px;">
+        <i data-lucide="plus" style="width:16px;height:16px;"></i> Create Project
+      </button>
+    </div>
   </form>
 </div>
+
+<style>
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  // Set default date to today for new projects
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelector('input[name="start_date"]').value = today;
+});
+</script>
 {% endblock %}

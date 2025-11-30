@@ -1,37 +1,49 @@
-// Sidebar toggle and accessibility
 document.addEventListener('DOMContentLoaded', function () {
-  const menuBtn = document.getElementById('menu-toggle');
-  const sidebar = document.getElementById('sidebar');
-
-  // Ensure elements exist
-  if (!menuBtn || !sidebar) return;
-
-  // Toggle sidebar when menu button is clicked
-  menuBtn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    const isActive = sidebar.classList.toggle('active');
-    sidebar.setAttribute('aria-hidden', !isActive);
-  });
-
-  // Click outside sidebar to close
-  document.addEventListener('click', function (e) {
-    if (!sidebar.classList.contains('active')) return;
-    const inside = sidebar.contains(e.target);
-    const isToggle = e.target.closest('#menu-toggle');
-    if (!inside && !isToggle) {
-      sidebar.classList.remove('active');
-      sidebar.setAttribute('aria-hidden', 'true');
+    const menuBtn = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
     }
-  });
 
-  // ESC key closes sidebar
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-      sidebar.classList.remove('active');
-      sidebar.setAttribute('aria-hidden', 'true');
+    // Ensure elements exist
+    if (!menuBtn || !sidebar) {
+        console.error('Menu button or sidebar not found');
+        return;
     }
-  });
+
+    // ✅ AUTO-OPEN SIDEBAR ON LOGIN (check for URL parameter)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('login') || urlParams.has('sidebar')) {
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden', 'false');
+    }
+
+    // Toggle sidebar when menu button is clicked
+    menuBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isActive = sidebar.classList.toggle('active');
+        sidebar.setAttribute('aria-hidden', !isActive);
+        
+        // Update Lucide icons after toggle (in case menu icon needs change)
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+
+    // ESC key closes sidebar (optional - you can remove this too if you want)
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            sidebar.setAttribute('aria-hidden', 'true');
+        }
+    });
+
+    // REMOVED: Click outside sidebar to close functionality
+    // This keeps the sidebar open until the menu button is clicked again
 });
+
 function filterTable() {
   const searchValue = document.getElementById('searchName').value.toLowerCase();
   const fromDate = document.getElementById('fromDate').value;
@@ -50,6 +62,7 @@ function filterTable() {
     row.style.display = visible ? '' : 'none';
   });
 }
+
 function parseDate(value) {
   if (!value) return null;
   return new Date(value + 'T00:00:00');
@@ -99,4 +112,25 @@ function confirmDelete(ev, url) {
   if (confirm('Are you sure you want to delete this?')) {
     window.location = url;
   }
+}
+
+// In the showEvidence function, update the image src URL
+function showEvidence(entryId) {
+    fetch(`/logbook/evidence/${entryId}`)
+        .then(response => response.json())
+        .then(data => {
+            const evidenceDiv = document.getElementById(`evidence-${entryId}`);
+            if (data.evidence_files && data.evidence_files.length > 0) {
+                evidenceDiv.innerHTML = data.evidence_files.map(file => `
+                    <div style="margin-bottom:10px;">
+                        <img src="/uploads/logbook_evidence/${file}" 
+                             style="max-width:100%; max-height:200px; border-radius:5px; margin-bottom:5px;" 
+                             alt="Evidence photo">
+                        <div style="font-size:12px; color:#666;">${file}</div>
+                    </div>
+                `).join('');
+            } else {
+                evidenceDiv.innerHTML = '<em>No evidence files</em>';
+            }
+        });
 }

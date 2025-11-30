@@ -12,7 +12,9 @@ body{
   margin:0;
   background:var(--muted);
   color:var(--dark)
+  
 }
+
 header.topbar{background:rgba(0, 0, 0, 0.6);position:fixed;top:0;left:0;right:0;height:72px;display:flex;align-items:center;padding:0 28px;z-index:50}
 .logo {
   display: flex;
@@ -601,7 +603,6 @@ button:active, .btn:active {
 }
 .sidebar.active ~ .main-content,
 .sidebar.active ~ #main-content {
-  filter: blur(2px);
   pointer-events: none; /* prevent clicking through */
 }
 
@@ -623,9 +624,7 @@ button:active, .btn:active {
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   height: 100vh; /* full viewport height */
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
-    url("/static/skbg.png") no-repeat center center/cover;
+  background: url("/static/skbg.png") no-repeat center center/cover;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -714,9 +713,7 @@ body.homepage .hero-section {
   width: 100%;
   margin: 0;
   padding: 0;
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
-    url("/static/skbg.png") center center / cover no-repeat;
+  background: url("/static/skbg.png") center center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1760,4 +1757,633 @@ form textarea {
 
 .logout-link:hover {
   background: #ffe0b2;
+}
+.intro-text {
+  text-align: center;
+  margin: 40px auto 20px;
+  padding: 0 20px;
+}
+
+.intro-text h1 {
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.intro-text p {
+  font-size: 18px;
+  color: #444;
+}
+/* Remove glass effect and position button lower */
+.hero-section {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Center vertically */
+  position: relative;
+}
+
+/* Remove blurring around button */
+.hero-content {
+  background: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  position: absolute;
+  bottom: 180px; /* Adjust this value to move button up/down */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+/* New modern outlined hero button */
+.hero-btn {
+  font-size: 22px;
+  font-weight: 600;
+  padding: 16px 48px;
+  border: 3px solid #ff9800;
+  border-radius: 50px;
+  background: transparent;
+  color: #ff9800;
+  text-decoration: none;
+  transition: 0.25s ease;
+  display: inline-block;
+}
+/* Hover effect: fill orange */
+.hero-btn:hover {
+  background: #ff9800;
+  color: white;
+  /* Remove transform: scale() and use padding instead for similar effect */
+  padding: 18px 52px;
+  margin: -2px -4px; /* Compensate for increased padding to maintain position */
+  border-radius: 50px;
+}
+/* Welcome Text at Top Center */
+.welcome-top {
+  position: relative;
+  top: 25%; /* Adjust this to move welcome text up/down */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  width: 100%;
+  padding: 0 20px;
+  z-index: 2;
+  height: 950px;
+}
+
+.welcome-top h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.welcome-top p {
+  font-size: 1.5rem;
+  font-weight: 400;
+  opacity: 0.95;
+  color: #f8f8f8;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+/* Updated Hero Section */
+.hero-section {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+}
+
+/* Hero content positioning for button */
+.hero-content {
+  background: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  position: absolute;
+  bottom: 180px; /* Adjust this to move button up/down */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 2;
+}
+
+/* Hero button styling */
+.hero-btn {
+  font-size: 22px;
+  font-weight: 600;
+  padding: 16px 48px;
+  border: 3px solid #ff9800;
+  border-radius: 50px;
+  background: transparent;
+  color: #ff9800;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  display: inline-block;
+}
+
+.hero-btn:hover {
+  background: #ff9800;
+  color: white;
+  transform: scale(1.05);
+  border-radius: 50px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .welcome-top {
+    top: 20%;
+  }
+  
+  .welcome-top h1 {
+    font-size: 2.8rem;
+  }
+  
+  .welcome-top p {
+    font-size: 1.2rem;
+    max-width: 90%;
+  }
+  
+  .hero-content {
+    bottom: 150px;
+  }
+  
+  .hero-btn {
+    font-size: 20px;
+    padding: 14px 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-top h1 {
+    font-size: 2.2rem;
+  }
+  
+  .welcome-top p {
+    font-size: 1rem;
+  }
+  
+  .hero-btn {
+    font-size: 18px;
+    padding: 12px 36px;
+  }
+}
+/* Evidence Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.close-modal:hover {
+  color: #ff0000;
+}
+
+#evidenceGallery img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  transition: transform 0.3s ease;
+}
+
+#evidenceGallery img:hover {
+  transform: scale(1.05);
+}
+:root{
+  --orange: #ff9800;
+  --orange-dark: #d35400;
+  --muted: #f5f6f8;
+  --card: #fff7f2;
+  --dark: #222;
+  --sidebar-width: 260px;
+  --sidebar-mini: 72px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { height: 100%; }
+body {
+  font-family: 'Poppins', Arial, sans-serif;
+  background: var(--muted);
+  color: var(--dark);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding-top: 70px; /* room for topbar */
+}
+
+/* === Topbar === */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 70px;
+  background: linear-gradient(90deg, #222, #111);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 18px;
+  z-index: 1100;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+/* Hamburger visually on the left — DOM may be anywhere but we position it absolute to left 14px */
+.hamburger, .menu-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: transform .12s ease, background .12s ease;
+  position: relative;
+  z-index: 1200;
+}
+.hamburger:hover, .menu-btn:hover { transform: scale(1.05); background: rgba(255,255,255,0.03); }
+
+/* Logo block */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px; /* a little offset from left */
+}
+.logo img { height: 44px; width:44px; object-fit:contain; }
+.logo h1 { color: #fff; font-size: 18px; font-weight:700; }
+
+/* Right side of topbar */
+.nav-right { margin-left: auto; display:flex; align-items:center; gap:12px; color:#fff; }
+.user-name { font-weight:600; color:#fff; }
+
+/* logout link */
+.logout-link {
+  background: transparent;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.logout-link:hover { background: rgba(255,255,255,0.03); color: var(--orange); }
+
+/* === Layout: Sidebar + Main === */
+.db-root { display:flex; min-height: calc(100vh - 70px); }
+
+/* Sidebar (desktop: fixed visible) */
+.db-sidebar {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100% - 70px);
+  background: #ffffff;
+  border-right: 1px solid #eee;
+  box-shadow: 2px 0 20px rgba(0,0,0,0.06);
+  padding: 18px 12px;
+  overflow: auto;
+  transition: width .22s ease;
+  z-index: 1050;
+}
+
+/* Sidebar collapsed (mini icons only) */
+.db-sidebar.collapsed {
+  width: var(--sidebar-mini);
+}
+.db-sidebar .brand { display:flex; gap:10px; align-items:center; padding:6px 8px; }
+.db-sidebar .brand img { height:40px; width:40px; }
+.db-sidebar .brand .brand-text { display:block; }
+.db-sidebar.collapsed .brand .brand-text { display:none; }
+
+/* Nav items */
+.nav-main { margin-top: 14px; display:flex; flex-direction:column; gap:6px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  border-radius:8px;
+  color:#333; text-decoration:none; font-weight:600;
+  transition: background .15s ease, transform .12s ease;
+}
+.nav-item:hover { background: linear-gradient(90deg,#fff7ea,#fff3e0); transform: translateX(4px); color: #000; }
+.nav-item .nav-icon { font-size:18px; width:22px; text-align:center; }
+.db-sidebar.collapsed .nav-label { display:none; }
+
+/* Sidebar footer: mini-icon collapse toggle + account */
+.sidebar-footer { margin-top: 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:12px; border-top:1px solid #f2f2f2; }
+.mini-btn {
+  background: transparent; border: 1px solid rgba(0,0,0,0.06);
+  padding: 6px 8px; border-radius:8px; cursor:pointer;
+}
+.mini-btn:hover { background: rgba(0,0,0,0.03); }
+
+/* account area */
+.acct { display:flex; align-items:center; gap:8px; }
+.acct .acct-name { font-weight:700; font-size:14px; color:#333; }
+.logout.small { font-size:13px; color:var(--orange); text-decoration:none; }
+
+/* Main content area (keeps margin to account for sidebar on desktop) */
+.db-main {
+  margin-left: var(--sidebar-width);
+  padding: 28px;
+  width: calc(100% - var(--sidebar-width));
+  transition: margin-left .22s ease, width .22s ease;
+  min-height: calc(100vh - 70px);
+  box-sizing: border-box;
+}
+
+/* If sidebar collapsed (desktop), adjust */
+.db-sidebar.collapsed ~ .db-main {
+  margin-left: var(--sidebar-mini);
+  width: calc(100% - var(--sidebar-mini));
+}
+
+/* Cards & Grid in dashboard */
+.db-topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.tb-left { display:flex; align-items:center; gap:12px; }
+.tb-title { font-size:20px; font-weight:700; color:#222; margin-left:6px; }
+
+.db-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:18px;
+  align-items:start;
+}
+.card { background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.06); padding:16px; }
+.card-large { grid-column: 1 / 2; }
+
+/* Chart wrapper */
+.chart-wrap { position:relative; display:flex; flex-direction:column; gap:12px; }
+.chart-canvas { width:100%; height:240px; display:block; }
+.chart-controls { display:flex; align-items:center; justify-content:center; gap:8px; }
+.chart-page-btn { background: #fff; border:1px solid #eee; padding:6px 10px; border-radius:6px; cursor:pointer; }
+.chart-page-btn:hover { background:#f7f7f7; }
+
+/* Quick links bottom */
+.quick-links { margin-top:18px; }
+.ql-grid { display:flex; gap:12px; justify-content:space-between; }
+.ql { flex:1; display:block; background:#fff; padding:14px; border-radius:10px; text-decoration:none; color:#222; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
+.ql-title { font-weight:700; margin-bottom:6px; }
+
+/* FOOTER */
+.footer { text-align:center; padding:12px; color:#666; margin-top:20px; }
+
+/* HERO (index) specific */
+.hero-section {
+  background: url("/static/skbg.png") center/cover no-repeat;
+}
+
+/* Welcome text (moved higher) */
+.welcome-top { position: absolute; top: 12%; left:50%; transform: translateX(-50%); text-align:center; color:#fff; z-index:2; width:100%; padding:0 20px; }
+.welcome-top h1 { font-size:3.4rem; font-weight:800; margin-bottom:8px; text-shadow:0 10px 30px rgba(0,0,0,0.45); }
+.welcome-top p { font-size:1.15rem; opacity:0.95; max-width:900px; margin:0 auto; }
+
+/* Hero button — positioned lower so it doesn't overlap faces */
+.hero-content { position:absolute; bottom:120px; left:50%; transform:translateX(-50%); z-index:2; }
+.hero-btn {
+  font-size:20px; font-weight:700; padding:14px 44px; border-radius:999px;
+  border:3px solid var(--orange); background:transparent; color:var(--orange);
+  text-decoration:none; display:inline-block;
+  transition: all .18s ease;
+  min-width:220px;
+}
+.hero-btn:hover { background:var(--orange); color:#fff; transform:translateY(-3px); }
+
+/* LOGIN page: ensure panel X is inside panel and clickable */
+.login-panel { position: relative; z-index:2; overflow:visible; }
+
+/* X close button inside login panel — top-right of panel (not top-left of screen) */
+.login-panel .close-login {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  color: var(--orange);
+  border: 2px solid rgba(255,152,0,0.14);
+  padding: 6px 10px;
+  border-radius:6px;
+  font-weight:700;
+  cursor:pointer;
+  z-index: 80;
+}
+.login-panel .close-login:hover { background: rgba(255,152,0,0.06); }
+
+/* Evidence modal */
+.modal { display:none; }
+
+/* === Responsive rules === */
+@media (max-width: 900px) {
+  /* Sidebar hidden by default on mobile — toggled by .active class */
+  .db-sidebar {
+    left: -100%;
+    position: fixed;
+    width: 80%;
+    transition: left .22s ease;
+  }
+  .db-sidebar.active {
+    left: 0;
+  }
+
+  /* Main occupies full width (no margin) */
+  .db-main { margin-left: 0; width: 100%; padding:18px; }
+
+  /* Grid stacks vertically */
+  .db-grid { grid-template-columns: 1fr; }
+
+  /* place hero button slightly higher on small screens */
+  .hero-content { bottom: 90px; }
+}
+
+/* Keep forms and inputs consistent */
+.form-control { padding:10px; border-radius:6px; border:1px solid #e6e6e6; width:100%; }
+
+/* Small utilities */
+.hidden { display:none !important; }
+.center { display:flex; align-items:center; justify-content:center; }
+
+/* Hide hamburger on index page */
+body.homepage .hamburger {
+    display: none !important;
+}
+
+/* Hide sidebar on homepage */
+body.homepage #sidebar {
+    display: none !important;
+}
+/* === SIDEBAR FIXES === */
+.sidebar {
+    position: fixed;
+    top: 70px;
+    left: -260px; /* Hidden by default */
+    width: 260px;
+    height: calc(100% - 70px);
+    background: #ffffff;
+    color: #000;
+    padding: 20px 10px;
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
+    transition: left 0.3s ease;
+    z-index: 1100;
+    overflow-y: auto;
+    border-right: 1px solid #eee;
+}
+
+.sidebar.active {
+    left: 0; /* Slide in when active */
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.25s ease;
+    font-weight: 500;
+}
+
+.sidebar nav a:hover {
+    background: #f57c00;
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.sidebar nav a.active {
+    background: #fff3e0;
+    border-left: 4px solid #f57c00;
+    color: #d35400;
+}
+
+.sidebar nav a i {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure main content shifts when sidebar is open */
+#main-content {
+    transition: margin-left 0.3s ease;
+    flex: 1;
+    padding: 24px;
+}
+
+.sidebar.active ~ #main-content {
+    margin-left: 260px;
+}
+
+/* Hide sidebar on homepage */
+body.homepage .sidebar {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+    .sidebar {
+        left: -260px;
+        width: 260px;
+    }
+    
+    .sidebar.active {
+        left: 0;
+    }
+    
+    .sidebar.active ~ #main-content {
+        margin-left: 0;
+    }
+    
+    /* Optional: Add overlay for mobile */
+    .sidebar.active::before {
+        content: '';
+        position: fixed;
+        top: 70px;
+        left: 260px;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1099;
+    }
+}
+
+/* Fix for hamburger button visibility */
+.menu-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure topbar layout is correct */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 50px; /* Space for hamburger */
+}
+
+/* Hide hamburger on homepage */
+body.homepage .menu-btn {
+    display: none !important;
 }

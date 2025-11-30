@@ -1,69 +1,402 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container section panel">
-  <h3 style="text-align:center; font-weight:700;">Edit Logbook Entry</h3>
-
-  <form method="post" action="{{ url_for('logbook_edit', entry_id=entry.id) }}" class="form-panel" style="max-width:860px;margin:0 auto">
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <div style="flex:1 1 30%">
-        <label for="first_name">First Name</label>
-        <input class="form-control" id="first_name" name="first_name" value="{{ entry.first_name }}" required>
-      </div>
-      <div style="flex:1 1 20%">
-        <label for="middle_name">Middle Name</label>
-        <input class="form-control" id="middle_name" name="middle_name" value="{{ entry.middle_name }}">
-      </div>
-      <div style="flex:1 1 30%">
-        <label for="last_name">Last Name</label>
-        <input class="form-control" id="last_name" name="last_name" value="{{ entry.last_name }}" required>
-      </div>
-      <div style="flex:1 1 18%">
-        <label for="sitio">Sitio</label>
-        <select class="form-control" id="sitio" name="sitio">
-          <option value="">Select Sitio</option>
-          {% for s in sitios %}
-          <option value="{{ s }}" {% if s == entry.sitio %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
-      </div>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+      <h3 style="margin: 0;">Edit Logbook Entry</h3>
+      <p style="margin: 5px 0 0; color: #666; font-size: 0.95em;">Update visitor entry information and evidence</p>
     </div>
+    <a href="{{ url_for('logbook') }}" class="btn-outline" style="display: inline-flex; align-items: center; gap: 4px;">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Logbook
+    </a>
+  </div>
 
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-      <div style="flex:1">
-        <label for="time_in">Time In</label>
-        <input class="form-control" id="time_in" name="time_in" type="text" value="{{ entry.time_in or '' }}" placeholder="Select Time In">
+  <!-- Entry Form -->
+  <div class="card" style="margin-bottom: 20px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+      <i data-lucide="edit" style="width:18px;height:18px;"></i>
+      Edit Entry Details
+    </h4>
+    
+    <form method="post" action="{{ url_for('logbook_edit', entry_id=entry.id) }}" class="form-panel" enctype="multipart/form-data">
+      <!-- Personal Information Section -->
+      <div class="form-section">
+        <h5 class="section-title">Personal Information</h5>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first_name" class="form-label">First Name <span class="required">*</span></label>
+            <input class="form-control" id="first_name" name="first_name" value="{{ entry.first_name }}" required>
+          </div>
+          <div class="form-group">
+            <label for="middle_name" class="form-label">Middle Name</label>
+            <input class="form-control" id="middle_name" name="middle_name" value="{{ entry.middle_name }}">
+          </div>
+          <div class="form-group">
+            <label for="last_name" class="form-label">Last Name <span class="required">*</span></label>
+            <input class="form-control" id="last_name" name="last_name" value="{{ entry.last_name }}" required>
+          </div>
+          <div class="form-group">
+            <label for="sitio" class="form-label">Sitio</label>
+            <select class="form-control" id="sitio" name="sitio">
+              <option value="">Select Sitio</option>
+              {% for s in sitios %}
+              <option value="{{ s }}" {% if s == entry.sitio %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       </div>
-      <div style="flex:1">
-        <label for="time_out">Time Out</label>
-        <input class="form-control" id="time_out" name="time_out" type="text" value="{{ entry.time_out or '' }}" placeholder="Select Time Out">
-      </div>
-      <div style="flex:1">
-        <label for="date">Date</label>
-        <input class="form-control" id="date" name="date" type="date" value="{{ entry.date }}">
-      </div>
-    </div>
 
-    <div style="margin-top:12px;">
-      <label for="concern">Concern</label>
-      <textarea class="form-control" id="concern" name="concern" placeholder="Concern">{{ entry.concern or '' }}</textarea>
-    </div>
+      <!-- Time & Date Section -->
+      <div class="form-section">
+        <h5 class="section-title">Time & Date</h5>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="time_in" class="form-label">Time In</label>
+            <div class="input-with-icon">
+              <input class="form-control" id="time_in" name="time_in" type="text" value="{{ entry.time_in or '' }}" placeholder="Select Time In">
+              <i data-lucide="clock" style="width:16px;height:16px;"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="time_out" class="form-label">Time Out</label>
+            <div class="input-with-icon">
+              <input class="form-control" id="time_out" name="time_out" type="text" value="{{ entry.time_out or '' }}" placeholder="Select Time Out">
+              <i data-lucide="clock" style="width:16px;height:16px;"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="date" class="form-label">Date <span class="required">*</span></label>
+            <div class="input-with-icon">
+              <input class="form-control" id="date" name="date" type="date" value="{{ entry.date }}" required>
+              <i data-lucide="calendar" style="width:16px;height:16px;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div style="margin-top:16px;text-align:center">
-      <button class="btn" type="submit">Save Changes</button>
-      <a href="{{ url_for('logbook') }}" class="btn-outline">Cancel</a>
+      <!-- Concern Section -->
+      <div class="form-section">
+        <h5 class="section-title">Concern Details</h5>
+        <div class="form-group">
+          <label for="concern" class="form-label">Concern</label>
+          <textarea class="form-control" id="concern" name="concern" placeholder="Describe the concern or purpose of visit" rows="3">{{ entry.concern or '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Current Evidence Display -->
+      {% if entry.evidence_files %}
+      <div class="form-section">
+        <h5 class="section-title">Current Evidence</h5>
+        <div class="form-group">
+          <label class="form-label">Existing Evidence Files</label>
+          <div style="background:#f8f9fa; padding:15px; border-radius:6px; margin-top:8px; border:1px solid #e9ecef;">
+            {% set evidence_files = entry.evidence_files.split(',') %}
+            {% for file in evidence_files %}
+              {% if file.strip() %}
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #dee2e6;">
+                <span style="font-size:14px; color:#333; flex:1;">{{ file }}</span>
+                <div style="display:flex; gap:8px;">
+                  <a href="/uploads/logbook_evidence/{{ file }}" target="_blank" class="btn-outline" style="padding:4px 8px; font-size:12px; display:inline-flex; align-items:center; gap:4px;">
+                    <i data-lucide="eye" style="width:12px;height:12px;"></i> View
+                  </a>
+                </div>
+              </div>
+              {% endif %}
+            {% endfor %}
+            <div style="text-align:center; margin-top:12px;">
+              <button type="button" class="btn-outline view-all-evidence" style="display:inline-flex; align-items:center; gap:4px;">
+                <i data-lucide="image" style="width:14px;height:14px;"></i> View All Evidence
+              </button>
+            </div>
+          </div>
+          <small style="color:#666; display:block; margin-top:5px;">Note: Editing does not remove existing evidence files. Use delete and recreate to remove evidence.</small>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- New Evidence Upload Section -->
+      <div class="form-section">
+        <h5 class="section-title">Add More Evidence (Optional)</h5>
+        <div class="form-group">
+          <label for="evidence" class="form-label">Upload Additional Evidence Photos</label>
+          <input class="form-control" type="file" id="evidence" name="evidence" accept="image/*" multiple>
+          <small style="color:#666; display:block; margin-top:5px;">You can select multiple photos (JPEG, PNG, GIF). New files will be added to existing evidence.</small>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;text-align:center; display:flex; gap:12px; justify-content:center;">
+        <button class="btn" type="submit" style="display:inline-flex; align-items:center; gap:6px;">
+          <i data-lucide="save" style="width:16px;height:16px;"></i> Save Changes
+        </button>
+        <a href="{{ url_for('logbook') }}" class="btn-outline" style="display:inline-flex; align-items:center; gap:6px;">
+          <i data-lucide="x" style="width:16px;height:16px;"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Evidence Modal for viewing current evidence -->
+<div id="evidenceModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; padding:20px;">
+  <div class="modal-content" style="background:white; padding:25px; border-radius:12px; max-width:95%; max-height:95%; overflow:auto; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+    <span class="close-modal" style="position:absolute; top:15px; right:20px; font-size:28px; cursor:pointer; color:#333; background:#f0f0f0; width:35px; height:35px; border-radius:50%; text-align:center; line-height:35px; transition:all 0.3s ease;">&times;</span>
+    <h4 style="margin-bottom:20px; color:#333; border-bottom:2px solid #ff9800; padding-bottom:10px; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="image" style="width:20px;height:20px;"></i>
+      Current Evidence Photos
+    </h4>
+    <div id="evidenceGallery" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px; align-items:start;">
+      <!-- Evidence photos will be loaded here -->
     </div>
-  </form>
+  </div>
 </div>
 
 <!-- Flatpickr for AM/PM Time Picker -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style>
+
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.form-control {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1), inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-outline:hover {
+  background: #ff9800;
+  color: white;
+  box-shadow: 0 2px 6px rgba(255,152,0,0.3);
+}
+
+.btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  box-shadow: 0 3px 6px rgba(255,152,0,0.4);
+  color: white;
+}
+
+/* Form sections styling */
+.form-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.section-title {
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.input-with-icon .form-control {
+  padding-right: 40px;
+}
+
+/* Statistics cards enhancement */
+.card h4 {
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+</style>
+
 <script>
+// Initialize Flatpickr for time inputs
 flatpickr("#time_in, #time_out", {
-    enableTime: true,
-    noCalendar: true,
-    dateFormat: "h:i K",
-    time_24hr: false
+  enableTime: true,
+  noCalendar: true,
+  dateFormat: "h:i K",
+  time_24hr: false
+});
+
+// Evidence Modal Functionality for viewing current evidence
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('evidenceModal');
+  const closeBtn = document.querySelector('.close-modal');
+  const gallery = document.getElementById('evidenceGallery');
+  
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  // Close modal when clicking X or outside
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+  
+  // Close with ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+  
+  // Function to show current evidence
+  function showCurrentEvidence() {
+    const evidenceFiles = [
+      {% if entry.evidence_files %}
+        {% set files = entry.evidence_files.split(',') %}
+        {% for file in files %}
+          {% if file.strip() %}
+            "{{ file }}",
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    ].filter(Boolean);
+    
+    if (evidenceFiles.length > 0) {
+      gallery.innerHTML = '';
+      evidenceFiles.forEach(file => {
+        const imgDiv = document.createElement('div');
+        imgDiv.style.textAlign = 'center';
+        imgDiv.style.marginBottom = '15px';
+        
+        const img = document.createElement('img');
+        img.src = `/uploads/logbook_evidence/${file}`;
+        img.alt = `Evidence photo: ${file}`;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '300px';
+        img.style.borderRadius = '8px';
+        img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+        img.style.marginBottom = '5px';
+        
+        img.onerror = function() {
+          this.style.display = 'none';
+          const errorDiv = document.createElement('div');
+          errorDiv.innerHTML = `
+            <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:5px;margin:5px 0;">
+              <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i> 
+              Image not found: ${file}
+            </div>
+          `;
+          imgDiv.appendChild(errorDiv);
+        };
+        
+        const fileNameDiv = document.createElement('div');
+        fileNameDiv.style.fontSize = '12px';
+        fileNameDiv.style.color = '#666';
+        fileNameDiv.style.wordBreak = 'break-all';
+        fileNameDiv.textContent = file;
+        
+        imgDiv.appendChild(img);
+        imgDiv.appendChild(fileNameDiv);
+        gallery.appendChild(imgDiv);
+      });
+    } else {
+      gallery.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">No evidence files found for this entry.</p>';
+    }
+    modal.style.display = 'flex';
+  }
+  
+  function closeModal() {
+    modal.style.display = 'none';
+    gallery.innerHTML = '';
+  }
+  
+  // Add click handler to view all evidence button
+  const viewAllEvidenceBtn = document.querySelector('.view-all-evidence');
+  if (viewAllEvidenceBtn) {
+    viewAllEvidenceBtn.addEventListener('click', showCurrentEvidence);
+  }
 });
 </script>
 {% endblock %}

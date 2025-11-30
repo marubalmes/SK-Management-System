@@ -1,36 +1,129 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container section panel">
-  <h3 style="text-align:center; font-weight:700;">Edit User</h3>
+  <!-- Header Section -->
+  <div class="card" style="margin-bottom: 30px; border-left: 4px solid #ff9800;">
+    <div style="padding: 25px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+          <h1 style="margin: 0; color: #2c3e50; font-weight: 800; font-size: 2.2rem;">
+            <i data-lucide="user-cog" style="width:32px;height:32px; color:#ff9800; vertical-align:middle;"></i>
+            Edit User
+          </h1>
+          <p style="margin: 8px 0 0 0; color: #7f8c8d; font-size: 1.1rem;">
+            Update user information and permissions
+          </p>
+        </div>
+        <a href="{{ url_for('user_management') }}?sidebar=open" class="btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;"></i>
+          Back to Users
+        </a>
+      </div>
+    </div>
+  </div>
 
-  <form method="post" style="max-width:600px;margin:0 auto;">
-    <div class="form-group">
-      <label>Full Name</label>
-      <input type="text" class="form-control" name="fullname" value="{{ user.fullname }}" required>
-    </div>
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
-    </div>
-    <div class="form-group">
-      <label>Password (leave blank to keep current)</label>
-      <input type="password" class="form-control" name="password">
-    </div>
-    <div class="form-group">
-      <label>Role</label>
-      <select class="form-control" name="role" required>
-        <option value="SK_Chairman" {% if user.role=='SK_Chairman' %}selected{% endif %}>SK Chairman</option>
-        <option value="Secretary" {% if user.role=='Secretary' %}selected{% endif %}>Secretary</option>
-        <option value="Treasurer" {% if user.role=='Treasurer' %}selected{% endif %}>Treasurer</option>
-        <option value="BMO" {% if user.role=='BMO' %}selected{% endif %}>BMO</option>
-        <option value="super_admin" {% if user.role=='super_admin' %}selected{% endif %}>Super Admin</option>
-      </select>
+  <!-- Edit Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+        <i data-lucide="edit-3" style="width:20px;height:20px;"></i>
+        User Details
+      </h3>
+      <div class="card-actions">
+        <span class="badge">ID: {{ user.id }}</span>
+      </div>
     </div>
 
-    <div style="margin-top:20px;text-align:center;">
-      <button class="btn" type="submit">Save Changes</button>
-      <a href="{{ url_for('user_management') }}" class="btn-outline">Cancel</a>
+    <div style="padding: 30px;">
+      <form method="post" style="max-width: 600px; margin: 0 auto;">
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="user" style="width:16px;height:16px; margin-right:8px;"></i>
+            Full Name
+          </label>
+          <input type="text" class="form-control" name="fullname" value="{{ user.fullname }}" required 
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="at-sign" style="width:16px;height:16px; margin-right:8px;"></i>
+            Username
+          </label>
+          <input type="text" class="form-control" name="username" value="{{ user.username }}" required
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="lock" style="width:16px;height:16px; margin-right:8px;"></i>
+            Password
+          </label>
+          <input type="password" class="form-control" name="password" placeholder="Leave blank to keep current password"
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+          <small style="color: #7f8c8d; font-size: 0.85rem; margin-top: 5px; display: block;">
+            Only enter a new password if you want to change it
+          </small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 30px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="award" style="width:16px;height:16px; margin-right:8px;"></i>
+            Role
+          </label>
+          <select class="form-control" name="role" required
+                  style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; background: white;">
+            <option value="SK_Chairman" {% if user.role=='SK_Chairman' %}selected{% endif %}>SK Chairman</option>
+            <option value="Secretary" {% if user.role=='Secretary' %}selected{% endif %}>Secretary</option>
+            <option value="Treasurer" {% if user.role=='Treasurer' %}selected{% endif %}>Treasurer</option>
+            <option value="BMO" {% if user.role=='BMO' %}selected{% endif %}>BMO</option>
+            <option value="super_admin" {% if user.role=='super_admin' %}selected{% endif %}>Super Admin</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid #e9ecef;">
+          <button class="btn" type="submit" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="save" style="width:18px;height:18px;"></i>
+            Save Changes
+          </button>
+          <a href="{{ url_for('user_management') }}?sidebar=open" class="btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="x" style="width:18px;height:18px;"></i>
+            Cancel
+          </a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
+
+<style>
+
+
+.form-control:focus {
+  border-color: #ff9800 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .container.section.panel {
+    padding: 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+</script>
 {% endblock %}

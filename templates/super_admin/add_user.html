@@ -1,37 +1,129 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container section panel">
-  <h3 style="text-align:center; font-weight:700;">Add New User</h3>
+  <!-- Header Section -->
+  <div class="card" style="margin-bottom: 30px; border-left: 4px solid #ff9800;">
+    <div style="padding: 25px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+          <h1 style="margin: 0; color: #2c3e50; font-weight: 800; font-size: 2.2rem;">
+            <i data-lucide="user-plus" style="width:32px;height:32px; color:#ff9800; vertical-align:middle;"></i>
+            Add New User
+          </h1>
+          <p style="margin: 8px 0 0 0; color: #7f8c8d; font-size: 1.1rem;">
+            Create a new user account with specific role permissions
+          </p>
+        </div>
+        <a href="{{ url_for('user_management') }}?sidebar=open" class="btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+          <i data-lucide="arrow-left" style="width:18px;height:18px;"></i>
+          Back to Users
+        </a>
+      </div>
+    </div>
+  </div>
 
-  <form method="post" style="max-width:600px;margin:0 auto;">
-    <div class="form-group">
-      <label>Full Name</label>
-      <input type="text" class="form-control" name="fullname" required>
-    </div>
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" class="form-control" name="username" required>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" class="form-control" name="password" required>
-    </div>
-    <div class="form-group">
-      <label>Role</label>
-      <select class="form-control" name="role" required>
-        <option value="">Select Role</option>
-        <option value="SK_Chairman">SK Chairman</option>
-        <option value="Secretary">Secretary</option>
-        <option value="Treasurer">Treasurer</option>
-        <option value="BMO">BMO</option>
-        <option value="super_admin">Super Admin</option>
-      </select>
+  <!-- Add Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+        <i data-lucide="user-plus" style="width:20px;height:20px;"></i>
+        User Information
+      </h3>
+      <div class="card-actions">
+        <span class="badge">New User</span>
+      </div>
     </div>
 
-    <div style="margin-top:20px;text-align:center;">
-      <button class="btn" type="submit">Add User</button>
-      <a href="{{ url_for('user_management') }}" class="btn-outline">Cancel</a>
+    <div style="padding: 30px;">
+      <form method="post" style="max-width: 600px; margin: 0 auto;">
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="user" style="width:16px;height:16px; margin-right:8px;"></i>
+            Full Name
+          </label>
+          <input type="text" class="form-control" name="fullname" required 
+                 placeholder="Enter full name"
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="at-sign" style="width:16px;height:16px; margin-right:8px;"></i>
+            Username
+          </label>
+          <input type="text" class="form-control" name="username" required
+                 placeholder="Enter username"
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="lock" style="width:16px;height:16px; margin-right:8px;"></i>
+            Password
+          </label>
+          <input type="password" class="form-control" name="password" required
+                 placeholder="Enter password"
+                 style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 30px;">
+          <label style="display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">
+            <i data-lucide="award" style="width:16px;height:16px; margin-right:8px;"></i>
+            Role
+          </label>
+          <select class="form-control" name="role" required
+                  style="width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: all 0.2s ease; background: white;">
+            <option value="">Select Role</option>
+            <option value="SK_Chairman">SK Chairman</option>
+            <option value="Secretary">Secretary</option>
+            <option value="Treasurer">Treasurer</option>
+            <option value="BMO">BMO</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid #e9ecef;">
+          <button class="btn" type="submit" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="user-plus" style="width:18px;height:18px;"></i>
+            Add User
+          </button>
+          <a href="{{ url_for('user_management') }}?sidebar=open" class="btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i data-lucide="x" style="width:18px;height:18px;"></i>
+            Cancel
+          </a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
+
+<style>
+
+.form-control:focus {
+  border-color: #ff9800 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .container.section.panel {
+    padding: 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+</script>
 {% endblock %}

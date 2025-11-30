@@ -1,393 +1,896 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
-
-<div class="app-shell">
-  <!-- Main white content panel -->
-  <aside class="content-panel">
-
-    <!-- Top header area -->
-    <header class="panel-header">
-      <div>
-        <h1 class="panel-title">Dashboard</h1>
-        <p class="panel-sub">Welcome back, {{ session.user.fullname }}.</p>
-      </div>
-
-      <div class="header-actions">
-        <div class="stat-mini">
-          <div class="stat-label">Your Projects</div>
-          <div class="stat-value">{{ user_projects }}</div>
+<div class="db-main">
+    <div class="db-topbar">
+        <div class="tb-left">
+            <h1 class="tb-title">Dashboard</h1>
         </div>
-        <div class="stat-mini">
-          <div class="stat-label">Your Reports</div>
-          <div class="stat-value">{{ user_reports }}</div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Top area: left overview + charts carousel -->
-    <section class="top-grid">
-      <!-- Left overview card (big visual card like the reference) -->
-      <div class="overview-card">
-        <div class="overview-inner">
-          <h2 class="overview-title">SK Santisima Cruz</h2>
-          <p class="overview-sub">Empowering the Youth through Digital Transparency & Community Development</p>
-
-          <div class="overview-stats">
-            <div>
-              <div class="overview-num">{{ user_projects }}</div>
-              <div class="overview-label">Projects you uploaded</div>
+        <div class="tb-right">
+            <div class="user-welcome">
+                <span>Welcome, {{ session.user.fullname }}</span>
             </div>
-            <div>
-              <div class="overview-num">{{ user_reports }}</div>
-              <div class="overview-label">Reports you uploaded</div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i data-lucide="folder" style="width:24px;height:24px;"></i>
             </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Right: Charts carousel -->
-      <div class="charts-panel">
-        <div class="charts-header">
-          <h3>Insights</h3>
-          <div class="carousel-controls" aria-hidden="false">
-            <button id="prevSlide" class="carousel-btn" aria-label="Previous chart">‹</button>
-            <div id="dotContainer" class="dots"></div>
-            <button id="nextSlide" class="carousel-btn" aria-label="Next chart">›</button>
-          </div>
-        </div>
-
-        <div id="chartsCarousel" class="charts-carousel">
-          <!-- Slide 1: Pie (project status) -->
-          <div class="chart-slide" data-index="0">
-            <div class="chart-card">
-              <h4>Project Status Distribution</h4>
-              <canvas id="projectChart" width="480" height="320"></canvas>
+            <div class="stat-content">
+                <h3>{{ projects_total or 0 }}</h3>
+                <p>Total Projects</p>
+                <div class="stat-trend positive">
+                    <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+                    <span>{{ projects_approved or 0 }} approved</span>
+                </div>
             </div>
-          </div>
+        </div>
 
-          <!-- Slide 2: Line (logbook) -->
-          <div class="chart-slide" data-index="1">
-            <div class="chart-card">
-              <h4>Logbook Entries (This Month)</h4>
-              <canvas id="logbookChart" width="480" height="320"></canvas>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i data-lucide="file-text" style="width:24px;height:24px;"></i>
             </div>
-          </div>
-
-          <!-- Slide 3: Bar (reports) -->
-          <div class="chart-slide" data-index="2">
-            <div class="chart-card">
-              <h4>Report Categories</h4>
-              <canvas id="reportChart" width="480" height="320"></canvas>
+            <div class="stat-content">
+                <h3>{{ reports_total or 0 }}</h3>
+                <p>Total Reports</p>
+                <div class="stat-trend">
+                    <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i>
+                    <span>{{ reports_this_month or 0 }} this month</span>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Access (moved to the bottom area) -->
-    <section class="quick-access">
-      <h3>Quick Access</h3>
-      <div class="quick-grid">
-        <div class="quick-card">
-          <div class="quick-icon">📁</div>
-          <div class="quick-meta">
-            <h4>Project Management</h4>
-            <p>View and manage ongoing SK projects.</p>
-          </div>
-          <a class="quick-btn" href="{{ url_for('projects') }}">Go to Projects</a>
         </div>
 
-        <div class="quick-card">
-          <div class="quick-icon">📘</div>
-          <div class="quick-meta">
-            <h4>Logbook</h4>
-            <p>Monitor all activity records and attendance.</p>
-          </div>
-          <a class="quick-btn" href="{{ url_for('logbook') }}">Open Logbook</a>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i data-lucide="users" style="width:24px;height:24px;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ logbook_total or 0 }}</h3>
+                <p>Logbook Entries</p>
+                <div class="stat-trend positive">
+                    <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+                    <span>{{ logbook_today or 0 }} today</span>
+                </div>
+            </div>
         </div>
 
-        <div class="quick-card">
-          <div class="quick-icon">📝</div>
-          <div class="quick-meta">
-            <h4>Reports</h4>
-            <p>Access, upload, and manage SK reports.</p>
-          </div>
-          <a class="quick-btn" href="{{ url_for('reports') }}">Open Records</a>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i data-lucide="user-check" style="width:24px;height:24px;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ users_total or 0 }}</h3>
+                <p>Active Users</p>
+                <div class="stat-trend">
+                    <i data-lucide="users" style="width:16px;height:16px;"></i>
+                    <span>{{ roles_count.SK_Chairman or 0 }} SK Chairman</span>
+                </div>
+            </div>
         </div>
-      </div>
-    </section>
+    </div>
 
-  </aside>
+    <!-- Main Dashboard Grid -->
+    <div class="db-grid">
+        <!-- Projects Analytics -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>Projects Overview</h3>
+                <div class="card-actions">
+                    <a href="{{ url_for('projects') }}" class="btn-sm">View All</a>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="projectsStatusChart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="chart-stat">
+                    <span class="stat-value">{{ projects_ongoing or 0 }}</span>
+                    <span class="stat-label">Ongoing</span>
+                </div>
+                <div class="chart-stat">
+                    <span class="stat-value">{{ projects_completed or 0 }}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+                <div class="chart-stat">
+                    <span class="stat-value">{{ projects_planned or 0 }}</span>
+                    <span class="stat-label">Planned</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Analytics -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>Reports by Category</h3>
+                <div class="card-actions">
+                    <a href="{{ url_for('reports') }}" class="btn-sm">View All</a>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="reportsCategoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- User Contributions -->
+        <!-- User Contributions -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>User Contributions</h3>
+                <div class="card-actions">
+                    {% if session.user.role == 'super_admin' %}
+                        <a href="{{ url_for('user_management') }}" class="btn-sm">Manage Users</a>
+                    {% else %}
+                        <span class="btn-sm disabled">Manage Users</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="userContributionsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Logbook Activity -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3>Logbook Activity</h3>
+                <div class="card-actions">
+                    <a href="{{ url_for('logbook') }}" class="btn-sm">View Entries</a>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="logbookActivityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card activity-card">
+            <div class="card-header">
+                <h3>Recent Activity</h3>
+                <div class="card-actions">
+                    <span class="badge">{{ recent_activities|length }} activities</span>
+                </div>
+            </div>
+            <div class="activity-list">
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        {% if activity.type == 'project' %}
+                        <i data-lucide="folder" style="width:16px;height:16px;"></i>
+                        {% elif activity.type == 'report' %}
+                        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                        {% else %}
+                        <i data-lucide="users" style="width:16px;height:16px;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">{{ activity.description }}</p>
+                        <span class="activity-time">{{ activity.time }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="activity-empty">
+                    <i data-lucide="activity" style="width:32px;height:32px;"></i>
+                    <p>No recent activity</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card quick-actions-card">
+            <div class="card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="qa-grid">
+                <a href="{{ url_for('project_new') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="plus" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">New Project</span>
+                        <span class="qa-desc">Create new project</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('report_new') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="file-plus" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">New Report</span>
+                        <span class="qa-desc">Generate report</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('logbook') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="user-plus" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">Logbook Entry</span>
+                        <span class="qa-desc">Add visitor entry</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('user_management') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="settings" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">User Management</span>
+                        <span class="qa-desc">Manage users</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Chart.js -->
+<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-/* ========== Data from server ========== */
-const projectData = {{ project_data|tojson }};
-const logbookData = {{ logbook_data|tojson }};
-const reportData = {{ report_data|tojson }};
-
-/* ========== Carousel logic ========== */
-document.addEventListener('DOMContentLoaded', () => {
-  const slides = Array.from(document.querySelectorAll('.chart-slide'));
-  const dotsContainer = document.getElementById('dotContainer');
-  const prevBtn = document.getElementById('prevSlide');
-  const nextBtn = document.getElementById('nextSlide');
-  let active = 0;
-
-  function renderDots() {
-    dotsContainer.innerHTML = '';
-    slides.forEach((s, i) => {
-      const d = document.createElement('button');
-      d.className = 'dot' + (i === active ? ' active' : '');
-      d.setAttribute('aria-label', 'Go to slide ' + (i+1));
-      d.addEventListener('click', () => { goTo(i); });
-      dotsContainer.appendChild(d);
-    });
-  }
-
-  function updateSlides() {
-    slides.forEach((s, i) => {
-      s.style.display = i === active ? 'block' : 'none';
-    });
-    // update dots active class
-    Array.from(dotsContainer.children).forEach((d, i) => d.classList.toggle('active', i === active));
-    // ensure Chart.js charts get resized if needed
-    if (window._charts) {
-      window._charts.forEach(c => c.resize && c.resize());
-    }
-  }
-
-  function goTo(i) {
-    active = (i + slides.length) % slides.length;
-    updateSlides();
-  }
-  prevBtn.addEventListener('click', () => goTo(active - 1));
-  nextBtn.addEventListener('click', () => goTo(active + 1));
-
-  renderDots();
-  updateSlides();
-
-  // Initialize charts after carousel setup
-  initCharts();
-});
-
-/* ========== Chart initialization (fixed sizes) ========== */
-function initCharts(){
-  window._charts = window._charts || [];
-
-  // Project pie chart
-  const pCtx = document.getElementById('projectChart').getContext('2d');
-  const pLabels = projectData.map(d => d.status || 'Unknown');
-  const pValues = projectData.map(d => d.count || 0);
-  const projectChart = new Chart(pCtx, {
-    type: 'pie',
-    data: {
-      labels: pLabels,
-      datasets: [{
-        data: pValues,
-        backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545'],
-      }]
-    },
-    options: {
-      responsive: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
-  window._charts.push(projectChart);
-
-  // Logbook line chart
-  const lCtx = document.getElementById('logbookChart').getContext('2d');
-  const lLabels = logbookData.map(d => d.log_date);
-  const lValues = logbookData.map(d => d.count);
-  const logbookChart = new Chart(lCtx, {
-    type: 'line',
-    data: {
-      labels: lLabels,
-      datasets: [{
-        label: 'Entries / day',
-        data: lValues,
-        borderColor: '#ff9800',
-        backgroundColor: 'rgba(255,152,0,0.08)',
-        tension: 0.3,
-        fill: true,
-        pointRadius: 4
-      }]
-    },
-    options: {
-      responsive: false,
-      scales: {
-        x: { display: true, ticks: { maxRotation: 30, minRotation: 10 } },
-        y: { beginAtZero: true }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-  window._charts.push(logbookChart);
-
-  // Reports bar chart
-  const rCtx = document.getElementById('reportChart').getContext('2d');
-  const rLabels = reportData.map(d => d.type || 'Unknown');
-  const rValues = reportData.map(d => d.count || 0);
-  const reportChart = new Chart(rCtx, {
-    type: 'bar',
-    data: {
-      labels: rLabels,
-      datasets: [{
-        label: 'Total Reports',
-        data: rValues,
-        backgroundColor: '#17a2b8'
-      }]
-    },
-    options: {
-      responsive: false,
-      scales: {
-        x: { ticks: { maxRotation: 30 } },
-        y: { beginAtZero: true }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-  window._charts.push(reportChart);
-}
-</script>
-
 <style>
-/* ===== Overall shell ===== */
-.app-shell {
-  display: flex;
-  justify-content: center;
-  padding: 28px;
+.db-main {
+    padding: 30px;
+    min-height: 100vh;
+    max-width: 100%;
+    margin: 0 auto;
+}
+.db-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 25px 0;
+    border-bottom: 1px solid #e9ecef;
 }
 
-/* content panel (white rounded card) */
-.content-panel{
-  width: min(1200px, 96%);
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  overflow: hidden;
+.tb-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin: 0;
+    background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-/* header */
-.panel-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:22px 30px;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-}
-.panel-title{ font-size:20px; margin:0; font-weight:700; color:#333; }
-.panel-sub{ margin:4px 0 0; color:#666; font-size:13px; }
-
-.header-actions {display:flex; gap:12px; align-items:center;}
-.stat-mini{ text-align:center; padding:8px 12px; background:#fff; border-radius:8px; }
-.stat-mini .stat-label{ color:#777; font-size:12px; }
-.stat-mini .stat-value{ color:#ff9800; font-weight:700; font-size:18px; }
-
-/* top grid */
-.top-grid{
-  display:grid;
-  grid-template-columns: 1fr 1.25fr;
-  gap:28px;
-  padding:24px 32px;
-  align-items:start;
+.tb-subtitle {
+    color: #7f8c8d;
+    margin: 10px 0 0 0;
+    font-size: 1.1rem;
+    font-weight: 400;
 }
 
-/* overview card */
-.overview-card{
-  background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.98) 100%);
-  border-radius:12px;
-  padding:28px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-}
-.overview-inner{ display:flex; flex-direction:column; gap:18px; height:100%; }
-.overview-title{ font-size:26px; margin:0; color:#333; }
-.overview-sub{ color:#666; margin:0; font-size:14px; }
-.overview-stats{ display:flex; gap:18px; margin-top:8px; }
-.overview-num{ font-size:26px; color:#ff9800; font-weight:700; }
-.overview-label{ color:#666; font-size:13px; }
-
-/* cta */
-.cta{
-  display:inline-block;
-  margin-top:auto;
-  background:#ff9800;
-  color:#fff;
-  padding:10px 14px;
-  border-radius:8px;
-  text-decoration:none;
-  width:max-content;
+.user-welcome {
+    text-align: right;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-left: 4px solid #ff9800;
 }
 
-/* charts panel */
-.charts-panel{ display:flex; flex-direction:column; gap:12px; }
-.charts-header{ display:flex; justify-content:space-between; align-items:center; }
-.charts-header h3{ margin:0; color:#333; font-size:16px; }
-.carousel-controls{ display:flex; align-items:center; gap:10px; }
-.carousel-btn{ border:0; background:transparent; font-size:20px; padding:6px 10px; cursor:pointer; color:#666; }
-.carousel-btn:hover{ color:#ff9800; }
-
-/* dots */
-.dots{ display:flex; gap:6px; align-items:center; }
-.dot{
-  width:10px; height:10px; border-radius:50%; background:#e0e0e0; border:0; cursor:pointer;
-}
-.dot.active{ background:#ff9800; }
-
-/* carousel area */
-.charts-carousel{ min-height:360px; display:block; position:relative; }
-.chart-slide{ display:none; }
-.chart-card{
-  background:#fff;
-  border-radius:10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-  padding:18px;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  align-items:center;
+.user-welcome span {
+    font-weight: 700;
+    color: #2c3e50;
+    display: block;
+    font-size: 1.2rem;
 }
 
-/* quick access bottom */
-.quick-access{ padding:12px 32px 28px; border-top:1px solid rgba(0,0,0,0.04); }
-.quick-access h3{ margin:0 0 12px; color:#333; }
-.quick-grid{ display:flex; gap:18px; flex-wrap:wrap; }
-.quick-card{
-  flex:1; min-width:250px;
-  background:#fff;
-  border-radius:10px;
-  padding:16px;
-  display:flex;
-  gap:12px;
-  align-items:center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+.user-welcome small {
+    color: #ff9800;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
-.quick-icon{ font-size:30px; }
-.quick-meta h4{ margin:0; font-size:16px; }
-.quick-meta p{ margin:4px 0 0; color:#666; font-size:13px; }
-.quick-btn{
-  margin-left:auto;
-  background:transparent;
-  color:#ff9800;
-  border: 2px solid #ff9800;
-  padding:8px 12px;
-  border-radius:8px;
-  text-decoration:none;
-}
-.quick-btn:hover{ background:#ff9800; color:#fff; }
 
-/* responsive */
-@media (max-width:1100px){
-  .top-grid{ grid-template-columns: 1fr; }
-  .charts-panel{ order:2; }
-  .overview-card{ order:1; }
-  .content-panel{ width:98%; }
+/* Statistics Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.stat-card:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(255,152,0,0.3);
+}
+
+.stat-content h3 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    line-height: 1;
+}
+
+.stat-content p {
+    color: #7f8c8d;
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.stat-trend.positive {
+    color: #27ae60;
+}
+
+/* Main Grid Layout */
+.db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 30px;
+    max-width: 100%;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+}
+
+.chart-card {
+    padding: 0;
+}
+
+.card-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.card-actions .btn-sm {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
+}
+
+.card-actions .btn-sm:hover {
+    background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,152,0,0.4);
+}
+
+.chart-container {
+    padding: 25px;
+    height: 280px;
+    position: relative;
+}
+
+.chart-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px 25px;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.chart-stat {
+    text-align: center;
+    padding: 0 15px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+/* Activity Card */
+.activity-card {
+    grid-column: span 1;
+}
+
+.activity-list {
+    padding: 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px 30px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    margin: 0 0 6px 0;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: #ff9800;
+    font-weight: 600;
+}
+
+.activity-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #bdc3c7;
+}
+
+.activity-empty i {
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.activity-empty p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Quick Actions */
+.quick-actions-card {
+    grid-column: span 1;
+}
+
+.qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: #f8f9fa;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+}
+
+.qa-item {
+    background: white;
+    padding: 25px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #f0f0f0;
+    position: relative;
+    overflow: hidden;
+}
+
+.qa-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,152,0,0.1) 0%, rgba(245,124,0,0.1) 100%);
+    transition: left 0.3s ease;
+}
+
+.qa-item:hover {
+    background: white;
+    color: inherit;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.qa-item:hover::before {
+    left: 0;
+}
+
+.qa-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(255,152,0,0.3);
+}
+
+.qa-content {
+    flex: 1;
+    z-index: 1;
+}
+
+.qa-title {
+    display: block;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    font-size: 1.1rem;
+}
+
+.qa-desc {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* Badge */
+.badge {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
+}
+
+/* Disabled button */
+.btn-sm.disabled {
+    background: #bdc3c7 !important;
+    color: #7f8c8d !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .db-grid {
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .db-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .db-main {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .db-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .user-welcome {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .qa-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tb-title {
+        font-size: 2rem;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .stat-content h3 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .db-main {
+        padding: 15px;
+    }
+    
+    .card-header {
+        padding: 20px;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .chart-container {
+        padding: 15px;
+        height: 250px;
+    }
+    
+    .qa-item {
+        padding: 20px;
+        flex-direction: column;
+        text-align: center;
+    }
 }
 </style>
 
+
+<script>
+// Initialize Lucide icons
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Initialize Charts
+    initializeCharts();
+});
+
+function initializeCharts() {
+    // Projects Status Chart (Doughnut)
+    const projectsCtx = document.getElementById('projectsStatusChart').getContext('2d');
+    new Chart(projectsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Ongoing', 'Completed', 'Planned'],
+            datasets: [{
+                data: [
+                    {{ projects_ongoing or 0 }},
+                    {{ projects_completed or 0 }},
+                    {{ projects_planned or 0 }}
+                ],
+                backgroundColor: [
+                    '#ff9800',
+                    '#28a745',
+                    '#17a2b8'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Reports Category Chart (Bar)
+    const reportsCtx = document.getElementById('reportsCategoryChart').getContext('2d');
+    new Chart(reportsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ report_categories|tojson|safe }},
+            datasets: [{
+                label: 'Reports',
+                data: {{ report_counts|tojson|safe }},
+                backgroundColor: '#ff9800',
+                borderColor: '#f57c00',
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // User Contributions Chart (Horizontal Bar)
+    const userCtx = document.getElementById('userContributionsChart').getContext('2d');
+    new Chart(userCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ user_roles|tojson|safe }},
+            datasets: [{
+                label: 'Contributions',
+                data: {{ user_contributions|tojson|safe }},
+                backgroundColor: [
+                    '#ff9800',
+                    '#f57c00',
+                    '#ffb74d',
+                    '#ffa726'
+                ],
+                borderWidth: 0,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Logbook Activity Chart (Line)
+    const logbookCtx = document.getElementById('logbookActivityChart').getContext('2d');
+    new Chart(logbookCtx, {
+        type: 'line',
+        data: {
+            labels: {{ logbook_dates|tojson|safe }},
+            datasets: [{
+                label: 'Entries',
+                data: {{ logbook_counts|tojson|safe }},
+                borderColor: '#ff9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
 {% endblock %}

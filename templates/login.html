@@ -1,64 +1,622 @@
 {% extends 'base.html' %}
 {% set body_class = "login-page" %}
 {% block content %}
-
-<!-- login-background uses inline style so we can call url_for -->
-<div class="login-background" style="background-image: url('{{ url_for('static', filename='skbg.png') }}');">
-  <!-- overlay dims the background -->
-  <div class="login-overlay" aria-hidden="true"></div>
-
-  <!-- centered panel -->
+<div class="login-background" style="background-image: url('{{ url_for('static', filename='dashbg.jpg') }}');">
   <div class="login-panel" role="region" aria-label="Login panel">
+    <!-- X close button top-right of panel -->
+    <a href="{{ url_for('index') }}" class="close-login" title="Back to home">
+      <i data-lucide="x" style="width:20px;height:20px;"></i>
+    </a>
 
-    <!-- LEFT: Welcome -->
     <div class="login-left">
-      <h2>Welcome to<br><span>Barangay SK Santisima Cruz</span></h2>
-      <h3 class="muted">Information Management System</h3>
-      <p class="muted">Empowering transparency and efficiency within our Sangguniang Kabataan Information Management System.</p>
+      <div class="logo-section">
+        <img src="{{ url_for('static', filename='sk.png') }}" alt="SK Logo" class="login-logo">
+        <div class="logo-text">
+          <h2>Barangay Santisima Cruz</h2>
+          <h3>Sangguniang Kabataan</h3>
+        </div>
+      </div>
+      
+      <div class="welcome-content">
+        <h1>Welcome to<br><span>SK Information<br>Management System</span></h1>
+        <p class="muted">Empowering youth leadership through digital transparency and efficient governance.</p>
+        
+        <div class="feature-list">
+          <div class="feature-item">
+            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+            <span>Secure Access Portal</span>
+          </div>
+          <div class="feature-item">
+            <i data-lucide="users" style="width:18px;height:18px;"></i>
+            <span>Role-Based Dashboard</span>
+          </div>
+          <div class="feature-item">
+            <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
+            <span>Real-time Monitoring</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT: Login form -->
     <div class="login-right">
-      <h2 class="login-title">Login</h2>
+      <div class="login-header">
+        <h2 class="login-title">Log In</h2>
+        <p class="login-subtitle">Enter your username and password</p>
+      </div>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="alert-container">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'message' else 'info' }}">
+                <i data-lucide="{% if category == 'success' %}check-circle{% elif category == 'danger' %}alert-circle{% else %}info{% endif %}" 
+                   style="width:16px;height:16px;margin-right:8px;"></i>
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
 
       <form method="post" class="login-form" novalidate>
-        <label>Username</label>
-        <input class="form-control" name="username" autocomplete="username" required>
+        <div class="form-group">
+          <label for="username">
+            <i data-lucide="user" style="width:16px;height:16px;"></i>
+            Username
+          </label>
+          <input type="text" id="username" class="form-control" name="username" 
+                 autocomplete="username" required placeholder="Enter your username">
+        </div>
 
-        <label>Password</label>
-        <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+        <div class="form-group">
+          <label for="password">
+            <i data-lucide="lock" style="width:16px;height:16px;"></i>
+            Password
+          </label>
+          <input type="password" id="password" class="form-control" name="password" 
+                 autocomplete="current-password" required placeholder="Enter your password">
+        </div>
 
-        <button class="btn login-btn" type="submit">Login</button>
+        <button class="btn login-btn" type="submit">
+          <i data-lucide="log-in" style="width:18px;height:18px;margin-right:8px;"></i>
+          Login
+        </button>
       </form>
+
+      <div class="login-footer">
+        <div class="security-notice">
+          <i data-lucide="shield" style="width:14px;height:14px;"></i>
+          <span>Secure SK Official Portal</span>
+        </div>
+        <div class="support-info">
+          Contact Super Admin for account assistance
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- 🔹 Close button (top-left) -->
-  <a href="{{ url_for('index') }}" class="close-btn" title="Back to Home">✕</a>
 </div>
 
 <style>
-/* 🔸 Close Button Styling */
-.close-btn {
+.login-background {
   position: fixed;
-  top: 25px;
-  left: 25px;
-  font-size: 26px;
-  color: white;
-  background: rgba(0, 0, 0, 0.4);
-  text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 50%;
-  transition: 0.2s ease;
-  font-weight: bold;
-  z-index: 9999; /* ensures it's above overlay and login box */
-  cursor: pointer;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.close-btn:hover {
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+.login-panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  width: 1000px;
+  max-width: 95%;
+  border-radius: 24px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: slideUpFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Left Section */
+.login-left {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.95) 0%, rgba(245, 124, 0, 0.98) 100%);
+  color: white;
+  padding: 50px 40px;
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-left::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  z-index: 1;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.login-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.logo-text h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.logo-text h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 2;
+}
+
+.welcome-content h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+}
+
+.welcome-content h1 span {
+  display: block;
+  font-weight: 700;
+  font-size: 28px;
+  background: linear-gradient(135deg, #fff 0%, #ffe0b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-content .muted {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item i {
+  color: #ffd54f;
+}
+
+/* Right Section - Enhanced Depth */
+.login-right {
+  width: 55%;
+  padding: 50px 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  position: relative;
+  box-shadow: 
+    inset 1px 0 0 rgba(255, 255, 255, 0.5),
+    -10px 0 30px rgba(0, 0, 0, 0.05);
+}
+
+.login-right::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.02) 0%, rgba(245, 124, 0, 0.03) 100%);
+  z-index: -1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 35px;
+  position: relative;
+}
+
+.login-header::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 25%;
+  right: 25%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #ff9800 50%, transparent 100%);
+  border-radius: 3px;
+}
+
+.login-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #333;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-subtitle {
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Alert Styles */
+.alert-container {
+  margin-bottom: 25px;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  animation: slideIn 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.alert-danger {
+  background: rgba(244, 67, 54, 0.15);
+  color: #c62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.alert-info {
+  background: rgba(33, 150, 243, 0.15);
+  color: #1565c0;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* Form Styles - Enhanced Depth */
+.login-form {
+  width: 100%;
+  position: relative;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.form-group label i {
+  color: #ff9800;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  position: relative;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 
+    0 4px 16px rgba(255, 152, 0, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.form-control::placeholder {
+  color: #9e9e9e;
+  font-weight: 400;
+}
+
+/* Login Button - Enhanced Depth */
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  border: none;
+  padding: 16px;
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  box-shadow: 
+    0 6px 20px rgba(255, 152, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.login-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 10px 30px rgba(87, 64, 29, 0.4),
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.login-btn:hover::before {
+  left: 100%;
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 15px rgba(255, 152, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Login Footer */
+.login-footer {
+  margin-top: 30px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.security-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 152, 0, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 152, 0, 0.1);
+}
+
+.security-notice i {
+  color: #4caf50;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.support-info {
+  font-size: 12px;
+  color: #9e9e9e;
+  font-style: italic;
+}
+
+/* Close Button */
+.close-login {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.close-login:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .login-panel {
+    flex-direction: column;
+    width: 90%;
+    max-width: 450px;
+  }
+  
+  .login-left, .login-right {
+    width: 100%;
+    padding: 40px 30px;
+  }
+  
+  .login-left {
+    text-align: center;
+  }
+  
+  .logo-section {
+    justify-content: center;
+  }
+  
+  .welcome-content h1 {
+    font-size: 28px;
+  }
+  
+  .welcome-content h1 span {
+    font-size: 24px;
+  }
+  
+  .login-title {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-panel {
+    width: 95%;
+  }
+  
+  .login-left, .login-right {
+    padding: 30px 25px;
+  }
+  
+  .welcome-content h1 {
+    font-size: 24px;
+  }
+  
+  .welcome-content h1 span {
+    font-size: 20px;
+  }
+  
+  .login-title {
+    font-size: 24px;
+  }
 }
 </style>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  // Add focus effects to form inputs
+  const inputs = document.querySelectorAll('.form-control');
+  inputs.forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', function() {
+      if (!this.value) {
+        this.parentElement.classList.remove('focused');
+      }
+    });
+  });
+});
+</script>
 {% endblock %}

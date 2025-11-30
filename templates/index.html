@@ -1,25 +1,719 @@
 {% extends 'base.html' %}
 {% block content %}
-  <!-- Full viewport hero section -->
-  <section class="hero-section">
-    <div class="hero-content">
-      <h1>SK Santisima Cruz</h1>
-      <p>Empowering the Youth through Digital Transparency and Community Development</p>
-      <a href="{{ url_for('login') }}" class="btn">Get Started</a>
-    </div>
-  </section>
 
-  <!-- About Us section -->
-  <div class="container section">
-    <h3>About Us</h3>
-    <p style="text-align:center;max-width:900px;margin:10px auto;color:#555">
-      The Sangguniang Kabataan (SK) of Barangay Santisima Cruz aims to strengthen youth involvement in governance and development projects.
-    </p>
+<!-- HERO Section -->
+<section class="hero-section">
+  <!-- WELCOME MESSAGE AT TOP CENTER -->
+  <div class="welcome-top">
+    <h1></h1>
+  </div>
+  
+  <!-- GET STARTED BUTTON AT BOTTOM -->
+  <div class="hero-content">
+    <a href="{{ url_for('login') }}" class="hero-btn">Get Started</a>
+  </div>
+</section>
 
-    <div class="cards" style="margin-top:30px">
-      <div class="card"><h4>Leadership Training</h4><p>Developing leadership skills and community participation among the youth.</p></div>
-      <div class="card"><h4>Environmental Projects</h4><p>Encouraging sustainability through clean-up drives and tree planting activities.</p></div>
-      <div class="card"><h4>Community Outreach</h4><p>Providing support for education, sports, and health through youth engagement.</p></div>
+<!-- MOVED TITLE + SUBTITLE -->
+<section class="intro-text">
+  <h1>SK Santisima Cruz</h1>
+  <p>Empowering the Youth through Digital Transparency and Community Development</p>
+</section>
+
+<!-- MEMBER SHOWCASE SECTION -->
+<div class="container section">
+  <h3 style="text-align:center; margin-bottom:40px;">Meet Our SK Officials</h3>
+  
+  <!-- Single Tab -->
+  <div class="member-tabs">
+    <button class="tab-btn active" data-tab="sk-members">SK Officials</button>
+  </div>
+
+  <!-- Carousel Container -->
+  <div class="carousel-container">
+    <!-- SK Members Tab Content -->
+    <div class="tab-content active" id="sk-members">
+      <div class="carousel">
+        <div class="carousel-track">
+          <!-- SK Chairperson -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk1.jpg') }}" alt="SK Chairperson">
+                <div class="member-overlay">
+                  <h4>Hon. Mikayla Cara S. Ramos</h4>
+                  <p>SK Chairperson</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Councilor 1 -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk2.jpg') }}" alt="SK Councilor">
+                <div class="member-overlay">
+                  <h4>Hon. John Lloyd Lumidao</h4>
+                  <p>SK Councilor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Councilor 2 -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk3.jpg') }}" alt="SK Councilor">
+                <div class="member-overlay">
+                  <h4>Hon. Mark Jem V. Palomaria</h4>
+                  <p>SK Councilor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Councilor 3 -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk4.jpg') }}" alt="SK Councilor">
+                <div class="member-overlay">
+                  <h4>Hon. Jenerose J. Evangelio</h4>
+                  <p>SK Councilor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Councilor 4 -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk5.jpg') }}" alt="SK Councilor">
+                <div class="member-overlay">
+                  <h4>Hon. John Rhovic P. Patiño</h4>
+                  <p>SK Councilor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Councilor 5 -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk6.jpg') }}" alt="SK Councilor">
+                <div class="member-overlay">
+                  <h4>Hon. Princess Joy T. Tuazon</h4>
+                  <p>SK Councilor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Treasurer -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk7.jpg') }}" alt="SK Treasurer">
+                <div class="member-overlay">
+                  <h4>Ms. Zaira Jean J. Pabellon</h4>
+                  <p>SK Treasurer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- SK Secretary -->
+          <div class="carousel-slide">
+            <div class="member-card">
+              <div class="image-container">
+                <img src="{{ url_for('static', filename='carousel/sk8.jpg') }}" alt="SK Secretary">
+                <div class="member-overlay">
+                  <h4>Ms. Jewelyn S. Guico</h4>
+                  <p>SK Secretary</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Carousel Controls -->
+        <button class="carousel-btn carousel-btn-prev">&#8249;</button>
+        <button class="carousel-btn carousel-btn-next">&#8250;</button>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- ABOUT US section -->
+<div class="container section">
+  <h3>About Us</h3>
+  <p style="text-align:center;max-width:900px;margin:10px auto;color:#555">
+    The Sangguniang Kabataan (SK) of Barangay Santisima Cruz aims to strengthen youth involvement in governance and development projects.
+  </p>
+
+  <div class="cards" style="margin-top:30px">
+    <div class="card">
+      <h4>Leadership Training</h4>
+      <p>Developing leadership skills and community participation among the youth.</p>
+    </div>
+
+    <div class="card">
+      <h4>Environmental Projects</h4>
+      <p>Encouraging sustainability through clean-up drives and tree planting activities.</p>
+    </div>
+
+    <div class="card">
+      <h4>Community Outreach</h4>
+      <p>Providing support for education, sports, and health through youth engagement.</p>
+    </div>
+  </div>
+</div>
+
+<style>
+/* REMOVE white background override - let base.html handle the dashbg.jpg */
+/* body.homepage {
+    background: #ffffff !important;
+} */
+
+/* Hero section with background image */
+.hero-section {
+    height: 100vh;
+    width: 100%;
+    background: url("{{ url_for('static', filename='skbg.png') }}") center center / cover no-repeat !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Dark overlay for better text readability */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+/* Smooth fade gradient at the bottom */
+.hero-section::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px; /* Adjust this value to control fade height */
+    background: linear-gradient(to bottom, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 20%,
+        rgba(255, 255, 255, 0.3) 40%,
+        rgba(255, 255, 255, 0.6) 70%,
+        rgba(255, 255, 255, 0.9) 90%,
+        rgba(255, 255, 255, 1) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Welcome text styling */
+.welcome-top {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    padding: 0 20px;
+    z-index: 2;
+}
+
+.welcome-top h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+/* Hero button positioning */
+.hero-content {
+    position: absolute;
+    bottom: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 2;
+}
+
+.hero-btn {
+    font-size: 22px;
+    font-weight: 600;
+    padding: 16px 48px;
+    border: 3px solid #ff9800;
+    border-radius: 50px;
+    background: transparent;
+    color: #ff9800;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    display: inline-block;
+}
+
+.hero-btn:hover {
+    background: #ff9800;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Intro text section */
+.intro-text {
+    text-align: center;
+    margin: 60px auto 40px;
+    padding: 0 20px;
+    /* Remove background: white since we want dashbg.jpg to show */
+}
+
+.intro-text h1 {
+    font-size: 38px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.intro-text p {
+    font-size: 18px;
+    color: #666;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Container sections - make them semi-transparent to show dashbg.jpg */
+.container.section {
+    background: rgba(255, 255, 255, 0.92);
+    padding: 60px 20px;
+    margin: 20px auto;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+}
+
+/* Member Showcase Styles */
+.member-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    margin: 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: #ff9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 3px;
+    background: #ff9800;
+    border-radius: 2px;
+}
+
+.tab-btn:hover {
+    color: #ff9800;
+    background: rgba(255, 152, 0, 0.05);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Carousel Styles */
+.carousel-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    border-radius: 15px;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    height: 100%;
+}
+
+.carousel-slide {
+    min-width: 25%;
+    height: 100%;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+.member-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.member-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8));
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 25px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .member-overlay {
+    opacity: 1;
+}
+
+.image-container:hover img {
+    transform: scale(1.05);
+}
+
+.member-overlay h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.member-overlay p {
+    margin: 0;
+    font-size: 1rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Carousel Controls */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 152, 0, 0.9);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.carousel-btn:hover {
+    background: rgba(255, 152, 0, 1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn-prev {
+    left: 20px;
+}
+
+.carousel-btn-next {
+    right: 20px;
+}
+
+/* Cards styling */
+.cards {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    border: 1px solid rgba(233, 236, 239, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.card h4 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.card p {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .carousel-slide {
+        min-width: 33.333%;
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel {
+        height: 350px;
+    }
+    
+    .carousel-slide {
+        min-width: 50%;
+    }
+    
+    .member-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tab-btn {
+        margin: 5px 0;
+        width: 200px;
+    }
+    
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .member-overlay h4 {
+        font-size: 1.2rem;
+    }
+    
+    .member-overlay p {
+        font-size: 0.9rem;
+    }
+    
+    .cards {
+        flex-direction: column;
+    }
+    
+    .welcome-top h1 {
+        font-size: 2.8rem;
+    }
+    
+    .hero-content {
+        bottom: 150px;
+    }
+    
+    .hero-btn {
+        font-size: 20px;
+        padding: 14px 40px;
+    }
+    
+    /* Adjust fade height for mobile */
+    .hero-section::after {
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel {
+        height: 300px;
+    }
+    
+    .carousel-slide {
+        min-width: 100%;
+    }
+    
+    .carousel-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+    }
+    
+    .member-overlay {
+        padding: 15px;
+    }
+    
+    .member-overlay h4 {
+        font-size: 1.1rem;
+    }
+    
+    .member-overlay p {
+        font-size: 0.8rem;
+    }
+    
+    .welcome-top h1 {
+        font-size: 2.2rem;
+    }
+    
+    .hero-btn {
+        font-size: 18px;
+        padding: 12px 36px;
+    }
+    
+    /* Further adjust fade height for very small screens */
+    .hero-section::after {
+        height: 80px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Carousel functionality
+  function initializeCarousel(carousel) {
+    const track = carousel.querySelector('.carousel-track');
+    const slides = Array.from(track.children);
+    const nextButton = carousel.querySelector('.carousel-btn-next');
+    const prevButton = carousel.querySelector('.carousel-btn-prev');
+    
+    let currentSlide = 0;
+    const slideCount = slides.length;
+    let slidesToShow = getSlidesToShow();
+    
+    function getSlidesToShow() {
+      if (window.innerWidth < 480) return 1;
+      if (window.innerWidth < 768) return 2;
+      if (window.innerWidth < 1200) return 3;
+      return 4;
+    }
+    
+    // Set up the slides in position
+    const setSlidePosition = () => {
+      slidesToShow = getSlidesToShow();
+      const slideWidth = track.getBoundingClientRect().width / slidesToShow;
+      
+      slides.forEach((slide, index) => {
+        slide.style.minWidth = slideWidth + 'px';
+        slide.style.left = (slideWidth * index) + 'px';
+      });
+      
+      moveToSlide(currentSlide);
+    };
+    
+    // Move to specific slide
+    const moveToSlide = (slideIndex) => {
+      const slideWidth = slides[0].getBoundingClientRect().width;
+      track.style.transform = 'translateX(-' + (slideWidth * slideIndex) + 'px)';
+      currentSlide = slideIndex;
+    };
+    
+    // Next slide
+    const nextSlide = () => {
+      const maxSlide = Math.max(0, slideCount - slidesToShow);
+      currentSlide = currentSlide >= maxSlide ? 0 : currentSlide + 1;
+      moveToSlide(currentSlide);
+    };
+    
+    // Previous slide
+    const prevSlide = () => {
+      const maxSlide = Math.max(0, slideCount - slidesToShow);
+      currentSlide = currentSlide <= 0 ? maxSlide : currentSlide - 1;
+      moveToSlide(currentSlide);
+    };
+    
+    // Auto-play
+    let autoPlay = setInterval(nextSlide, 4000);
+    
+    // Reset auto-play on user interaction
+    const resetAutoPlay = () => {
+      clearInterval(autoPlay);
+      autoPlay = setInterval(nextSlide, 4000);
+    };
+    
+    // Event listeners
+    nextButton.addEventListener('click', () => {
+      nextSlide();
+      resetAutoPlay();
+    });
+    
+    prevButton.addEventListener('click', () => {
+      prevSlide();
+      resetAutoPlay();
+    });
+    
+    // Pause on hover
+    carousel.addEventListener('mouseenter', () => {
+      clearInterval(autoPlay);
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+      resetAutoPlay();
+    });
+    
+    // Initialize
+    setSlidePosition();
+    
+    // Update on window resize
+    window.addEventListener('resize', setSlidePosition);
+    
+    return { setSlidePosition, moveToSlide };
+  }
+  
+  // Initialize carousel
+  const carousel = document.querySelector('.carousel');
+  if (carousel) {
+    initializeCarousel(carousel);
+  }
+});
+</script>
+
 {% endblock %}

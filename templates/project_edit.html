@@ -1,35 +1,142 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container section panel">
-  <h3 style="text-align:center">Edit Project</h3>
+  <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+    <h3 style="margin: 0;">Edit Project</h3>
+    <a class="btn" href="{{ url_for('projects') }}?sidebar=open">← Back to Projects</a>
+  </div>
+
   <form method="post" enctype="multipart/form-data" style="max-width:720px;margin:0 auto">
-    <label>Name</label>
-    <input class="form-control" name="name" value="{{ project.name }}" required>
+    <div class="form-group">
+      <label>Project Name *</label>
+      <input class="form-control" name="name" value="{{ project.name }}" required>
+    </div>
 
-    <label style="margin-top:8px">Start Date</label>
-    <input class="form-control" name="start_date" type="date" value="{{ project.start_date }}">
+    <div class="form-group">
+      <label>Start Date</label>
+      <input class="form-control" name="start_date" type="date" value="{{ project.start_date }}">
+    </div>
 
-    <label style="margin-top:8px">End Date</label>
-    <input class="form-control" name="end_date" type="date" value="{{ project.end_date }}">
+    <div class="form-group">
+      <label>End Date</label>
+      <input class="form-control" name="end_date" type="date" value="{{ project.end_date }}">
+    </div>
 
-    <label style="margin-top:8px">Details</label>
-    <textarea class="form-control" name="details">{{ project.details }}</textarea>
+    <div class="form-group">
+      <label>Project Details</label>
+      <textarea class="form-control" name="details" rows="4" placeholder="Describe the project objectives, scope, and other relevant details...">{{ project.details }}</textarea>
+    </div>
 
-    <label style="margin-top:8px">Status</label>
-    <select class="form-control" name="status">
-      <option {% if project.status=='Planned' %}selected{% endif %}>Planned</option>
-      <option {% if project.status=='On-going' %}selected{% endif %}>On-going</option>
-      <option {% if project.status=='Completed' %}selected{% endif %}>Completed</option>
-    </select>
+    <div class="form-group">
+      <label>Status</label>
+      <select class="form-control" name="status">
+        <option value="Planned" {% if project.status=='Planned' %}selected{% endif %}>Planned</option>
+        <option value="On-going" {% if project.status=='On-going' %}selected{% endif %}>On-going</option>
+        <option value="Completed" {% if project.status=='Completed' %}selected{% endif %}>Completed</option>
+      </select>
+    </div>
 
-    <label style="margin-top:8px">Upload File (optional)</label>
-    <input class="form-control" type="file" name="file">
+    <div class="form-group">
+      <label>Upload Project Document (optional)</label>
+      <input class="form-control" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv">
+      <small style="color: #666;">Allowed formats: PDF, DOC, DOCX, JPG, PNG, XLSX, CSV</small>
+    </div>
 
     {% if project.filename %}
-    <p>Current file: <a href="{{ url_for('uploaded_file', filename=project.filename.replace('uploads/','')) }}" target="_blank">Open File</a></p>
+    <div class="form-group" style="background: #f8f9fa; padding: 12px; border-radius: 6px;">
+      <label>Current File:</label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+        <a class="btn-outline" href="{{ url_for('uploaded_file', filename=project.filename.replace('uploads/','')) }}" target="_blank">
+          <i data-lucide="file" style="width:14px;height:14px;"></i> View Current File
+        </a>
+        <span style="font-size: 0.9em; color: #666;">Uploading a new file will replace the current one.</span>
+      </div>
+    </div>
     {% endif %}
 
-    <div style="margin-top:12px;text-align:center"><button class="btn" type="submit">Save</button></div>
+    <!-- Project Status Summary -->
+    <div class="card" style="margin: 20px 0; background: #f8f9fa;">
+      <h4 style="margin-top: 0;">Project Summary</h4>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div>
+          <strong>Current Status:</strong> 
+          <span class="status-badge status-{{ project.status|lower|replace(' ', '-') }}">
+            {{ project.status }}
+          </span>
+        </div>
+        <div>
+          <strong>SK Approval:</strong>
+          <span class="status-badge {% if project.approved_by_sk_chairman %}status-approved{% else %}status-pending{% endif %}">
+            {% if project.approved_by_sk_chairman %}APPROVED{% else %}PENDING{% endif %}
+          </span>
+        </div>
+      </div>
+      <p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
+        Note: SK Chairman approval can be managed from the project updates page.
+      </p>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn" type="submit" style="padding: 10px 24px;">
+        <i data-lucide="save" style="width:16px;height:16px;"></i> Update Project
+      </button>
+      <a href="{{ url_for('project_updates', proj_id=project.id) }}?sidebar=open" class="btn-outline" style="margin-left: 10px;">
+        <i data-lucide="activity" style="width:16px;height:16px;"></i> View Updates
+      </a>
+    </div>
   </form>
 </div>
+
+<style>
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.status-planned { background: #fff3cd; color: #856404; }
+.status-on-going { background: #d1ecf1; color: #0c5460; }
+.status-completed { background: #d4edda; color: #155724; }
+.status-approved { background: #d4edda; color: #155724; }
+.status-pending { background: #fff3cd; color: #856404; }
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background: #ff9800;
+  color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+</script>
 {% endblock %}
