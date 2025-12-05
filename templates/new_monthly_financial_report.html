@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel center-form-wrapper">
+  <div class="center-form">
+    <h3 style="margin-top: 0; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; color: #2c3e50;">
+      <i data-lucide="file-text" style="width:28px;height:28px; color: #ff9800;"></i>
+      Generate Monthly Financial Report
+    </h3>
+
+    <div style="padding: 20px; background: #fff3cd; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #ff9800;">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <i data-lucide="info" style="width:22px;height:22px; color: #f57c00; flex-shrink: 0; margin-top: 2px;"></i>
+        <div>
+          <div style="font-weight: 700; color: #f57c00; font-size: 16px; margin-bottom: 8px;">How it works</div>
+          <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.5;">
+            This will generate a comprehensive financial report for the selected month based on all approved budget entries. 
+            The report will also be added to the main Reports section as a "Monthly Financial Report".
+          </p>
+          <p style="margin: 10px 0 0 0; color: #856404; font-size: 13px; font-style: italic;">
+            <i data-lucide="alert-circle" style="width: 14px; height: 14px; vertical-align: middle; color: #f57c00;"></i>
+            Note: You can only generate one report per month.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED FORM TAG WITH ENCTYPE AND ACTION -->
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('new_monthly_financial_report') }}{% if sidebar_open %}?sidebar=open{% endif %}">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+        <div>
+          <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #34495e; font-size: 15px;">Select Year *</label>
+          <select name="year" class="form-control" required id="yearSelect" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 15px; background-color: white;">
+            <option value="">-- Select Year --</option>
+            {% for year in years %}
+              <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div>
+          <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #34495e; font-size: 15px;">Select Month *</label>
+          <select name="month" class="form-control" required id="monthSelect" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 15px; background-color: white;">
+            <option value="">-- Select Month --</option>
+            {% for month in months %}
+              <option value="{{ month }}">{{ month_names[month] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <i data-lucide="calendar" style="width: 18px; height: 18px; color: #f57c00;"></i>
+          <div style="font-weight: 600; color: #495057;">Selected Period:</div>
+          <div id="selectedPeriod" style="color: #ff9800; font-weight: 600;">-- None --</div>
+        </div>
+        <div id="reportStatus" style="font-size: 13px; color: #6c757d;">
+          <i data-lucide="info" style="width: 14px; height: 14px; vertical-align: middle; color: #f57c00;"></i>
+          Select a year and month to check availability
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #34495e; font-size: 15px;">Notes (Optional)</label>
+        <textarea name="notes" class="form-control" placeholder="Add any additional notes or comments about this financial report..." rows="4" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 15px; resize: vertical;"></textarea>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #34495e; font-size: 15px;">Upload Report File (Optional)</label>
+        <div style="border: 2px dashed #adb5bd; border-radius: 8px; padding: 25px; text-align: center; background: #f8f9fa; cursor: pointer; position: relative;">
+          <input type="file" name="file" accept=".pdf,.doc,.docx,.xlsx" class="form-control" style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; top: 0; left: 0;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <i data-lucide="upload" style="width: 32px; height: 32px; color: #6c757d;"></i>
+            <div>
+              <div style="color: #ff9800; font-weight: 600; font-size: 16px;">Browse...</div>
+              <div style="color: #6c757d; font-size: 13px; margin-top: 5px;">No file selected</div>
+            </div>
+          </div>
+        </div>
+        <small style="color: #6c757d; font-size: 13px; margin-top: 8px; display: block;">
+          <i data-lucide="file" style="width: 14px; height: 14px; vertical-align: middle; color: #f57c00;"></i>
+          Upload a detailed report file if available (PDF, Word, Excel)
+        </small>
+      </div>
+      
+      <!-- Action buttons with balanced sizing -->
+      <div style="display: flex; gap: 15px; margin-top: 40px; padding-top: 25px; border-top: 1px solid #e0e0e0;">
+        <button type="submit" class="btn-primary" id="submitBtn" style="flex: 1; padding: 16px 30px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease;">
+          <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+          Generate Report
+        </button>
+        
+        <a href="{{ url_for('monthly_financial_reports') }}?sidebar=open" class="btn-secondary" style="flex: 0.4; padding: 16px 25px; background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s ease;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.center-form-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+}
+
+.center-form {
+  width: 100%;
+  max-width: 800px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.form-control:focus {
+  border-color: #ff9800;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.15);
+}
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 45px;
+}
+
+/* Button hover effects */
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+}
+
+/* Disabled state */
+.btn-primary:disabled {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-primary:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  const yearSelect = document.getElementById('yearSelect');
+  const monthSelect = document.getElementById('monthSelect');
+  const selectedPeriod = document.getElementById('selectedPeriod');
+  const reportStatus = document.getElementById('reportStatus');
+  const submitBtn = document.getElementById('submitBtn');
+  
+  // Existing reports from template
+  const existingReports = {{ existing_reports|tojson|safe }};
+  
+  function updatePeriodDisplay() {
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const monthNames = {
+      '1': 'January', '2': 'February', '3': 'March', '4': 'April',
+      '5': 'May', '6': 'June', '7': 'July', '8': 'August',
+      '9': 'September', '10': 'October', '11': 'November', '12': 'December'
+    };
+    
+    if (year && month) {
+      const monthName = monthNames[month];
+      const monthYear = `${year}-${month.padStart(2, '0')}`;
+      selectedPeriod.textContent = `${monthName} ${year}`;
+      
+      // Check if report already exists
+      if (existingReports.includes(monthYear)) {
+        reportStatus.innerHTML = `
+          <div style="color: #721c24; background: #f8d7da; padding: 8px 12px; border-radius: 6px; border-left: 4px solid #dc3545;">
+            <i data-lucide="alert-triangle" style="width: 16px; height: 16px; vertical-align: middle; color: #dc3545;"></i>
+            A report for ${monthName} ${year} already exists!
+          </div>
+        `;
+        submitBtn.disabled = true;
+        submitBtn.style.background = 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)';
+        lucide.createIcons();
+      } else {
+        reportStatus.innerHTML = `
+          <div style="color: #155724; background: #d4edda; padding: 8px 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px; vertical-align: middle; color: #28a745;"></i>
+            Available - You can generate a report for ${monthName} ${year}
+          </div>
+        `;
+        submitBtn.disabled = false;
+        submitBtn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+        lucide.createIcons();
+      }
+    } else {
+      selectedPeriod.textContent = '-- None --';
+      reportStatus.innerHTML = `
+        <div style="color: #6c757d;">
+          <i data-lucide="info" style="width: 14px; height: 14px; vertical-align: middle; color: #f57c00;"></i>
+          Select a year and month to check availability
+        </div>
+      `;
+      submitBtn.disabled = true;
+      submitBtn.style.background = 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)';
+    }
+  }
+  
+  // Add event listeners
+  yearSelect.addEventListener('change', updatePeriodDisplay);
+  monthSelect.addEventListener('change', updatePeriodDisplay);
+  
+  // Initial update
+  updatePeriodDisplay();
+  
+  // File upload visual feedback
+  const fileInput = document.querySelector('input[name="file"]');
+  if (fileInput) {
+    const fileUploadArea = fileInput.parentElement;
+    const fileNameDisplay = fileUploadArea.querySelector('div:nth-child(2) > div:nth-child(2) > div:last-child');
+    
+    fileInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        const fileName = this.files[0].name;
+        fileNameDisplay.textContent = fileName;
+        fileNameDisplay.style.color = '#28a745';
+        fileNameDisplay.style.fontWeight = '600';
+        fileUploadArea.style.borderColor = '#28a745';
+        fileUploadArea.style.background = '#f0f9f0';
+      } else {
+        fileNameDisplay.textContent = 'No file selected';
+        fileNameDisplay.style.color = '#6c757d';
+        fileNameDisplay.style.fontWeight = 'normal';
+        fileUploadArea.style.borderColor = '#adb5bd';
+        fileUploadArea.style.background = '#f8f9fa';
+      }
+    });
+    
+    // Drag and drop effects
+    fileUploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.style.borderColor = '#ff9800';
+      this.style.background = '#fff3e0';
+    });
+    
+    fileUploadArea.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.style.borderColor = '#adb5bd';
+      this.style.background = '#f8f9fa';
+    });
+  }
+});
+</script>
+{% endblock %}

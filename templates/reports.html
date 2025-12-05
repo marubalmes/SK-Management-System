@@ -2,11 +2,18 @@
 {% block content %}
 <div class="container section panel">
   <!-- Header -->
+    <!-- Header -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h3 style="margin: 0;">Reports Management</h3>
-    <a class="btn" href="{{ url_for('report_new') }}?sidebar=open">
-      <i data-lucide="plus" style="width:16px;height:16px;"></i> New Report
-    </a>
+    {% if session.user.role not in ['Treasurer', 'BMO'] %}
+      <a class="btn" href="{{ url_for('report_new') }}?sidebar=open">
+        <i data-lucide="plus" style="width:16px;height:16px;"></i> New Report
+      </a>
+    {% else %}
+      <span class="btn" style="background: #6c757d; cursor: not-allowed; opacity: 0.7;" title="Treasurer/BMO can only view reports">
+        <i data-lucide="eye" style="width:16px;height:16px;"></i> View Only
+      </span>
+    {% endif %}
   </div>
 
   <!-- Report Statistics -->

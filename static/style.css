@@ -2387,3 +2387,34 @@ body.homepage .sidebar {
 body.homepage .menu-btn {
     display: none !important;
 }
+/* === SIDEBAR OVERLAY FIX === */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1099;
+    cursor: pointer;
+}
+
+/* Show overlay when sidebar is active on mobile */
+@media (max-width: 1024px) {
+    .sidebar.active ~ .sidebar-overlay {
+        display: block;
+    }
+    
+    /* Make sure sidebar is above overlay */
+    .sidebar.active {
+        z-index: 1100;
+    }
+}
+
+/* Desktop: no overlay needed */
+@media (min-width: 1025px) {
+    .sidebar-overlay {
+        display: none !important;
+    }
+}

@@ -4,9 +4,15 @@
   <!-- Header -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h3 style="margin: 0;">Projects Management</h3>
-    <a class="btn" href="{{ url_for('project_new') }}?sidebar=open">
-      <i data-lucide="plus" style="width:16px;height:16px;"></i> New Project
-    </a>
+    {% if session.user.role not in ['Treasurer', 'BMO'] %}
+      <a class="btn" href="{{ url_for('project_new') }}?sidebar=open">
+        <i data-lucide="plus" style="width:16px;height:16px;"></i> New Project
+      </a>
+    {% else %}
+      <span class="btn" style="background: #6c757d; cursor: not-allowed; opacity: 0.7;" title="Treasurer/BMO can only view projects">
+        <i data-lucide="eye" style="width:16px;height:16px;"></i> View Only
+      </span>
+    {% endif %}
   </div>
 
   <!-- Project Statistics -->
@@ -34,6 +40,43 @@
       </div>
     </div>
   </div>
+
+  <!-- Budget Allocation Section -->
+  {% if session.user.role not in ['Treasurer', 'BMO'] %}
+  <div class="card" style="margin-bottom: 20px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="dollar-sign" style="width:18px;height:18px;"></i>
+      Project Budget Allocations
+    </h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+      {% set has_allocations = false %}
+      {% for project in projects %}
+        {% if project.allocated_budget %}
+          {% set has_allocations = true %}
+          <div style="padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
+            <div style="font-weight: 600; color: #333; margin-bottom: 5px;">{{ project.name }}</div>
+            <div style="color: #28a745; font-weight: 700;">₱{{ "%.2f"|format(project.allocated_budget|float) }}</div>
+            <div style="font-size: 0.85em; color: #6c757d;">Allocated Budget</div>
+            {% if project.budget_name %}
+              <div style="font-size: 0.75em; color: #f57c00; margin-top: 4px;">From: {{ project.budget_name }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% if not has_allocations %}
+      <div style="text-align: center; padding: 20px; color: #6c757d;">
+        <i data-lucide="dollar-sign" style="width:32px;height:32px; opacity:0.5; margin-bottom:10px;"></i>
+        <p>No project budgets allocated yet</p>
+        {% if session.user.role not in ['Treasurer', 'BMO'] %}
+          <a href="{{ url_for('budgets') }}?sidebar=open" class="btn" style="margin-top: 10px;">
+            <i data-lucide="credit-card" style="width:16px;height:16px;"></i> Allocate Budgets
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Search and Filter Section -->
   <div class="card" style="margin-bottom: 20px;">
@@ -125,9 +168,15 @@
                   <i data-lucide="file" style="width:14px;height:14px;"></i> File
                 </a>
                 {% endif %}
-                <button class="btn-outline" onclick="confirmDelete(event, '{{ url_for('project_delete', proj_id=p.id) }}')" style="display: inline-flex; align-items: center; gap: 4px; color:#dc3545; border-color:#dc3545;">
-                  <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
-                </button>
+                {% if session.user.role not in ['Treasurer', 'BMO'] %}
+                  <button class="btn-outline" onclick="confirmDelete(event, '{{ url_for('project_delete', proj_id=p.id) }}')" style="display: inline-flex; align-items: center; gap: 4px; color:#dc3545; border-color:#dc3545;">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+                  </button>
+                {% else %}
+                  <span class="btn-outline" style="cursor: not-allowed; opacity: 0.6; border-color: #6c757d; color: #6c757d;">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+                  </span>
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -138,10 +187,12 @@
     {% else %}
     <div style="text-align: center; color: #666; padding: 40px;">
       <i data-lucide="folder" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
-      <p>No projects found. Create your first project to get started!</p>
-      <a class="btn" href="{{ url_for('project_new') }}?sidebar=open" style="margin-top: 10px;">
-        <i data-lucide="plus" style="width:16px;height:16px;"></i> Create First Project
-      </a>
+      <p>No projects found.</p>
+      {% if session.user.role not in ['Treasurer', 'BMO'] %}
+        <a class="btn" href="{{ url_for('project_new') }}?sidebar=open" style="margin-top: 10px;">
+          <i data-lucide="plus" style="width:16px;height:16px;"></i> Create First Project
+        </a>
+      {% endif %}
     </div>
     {% endif %}
   </div>
@@ -326,6 +377,23 @@
 
 .table th:last-child {
   border-top-right-radius: 8px;
+}
+
+/* View-only button style */
+.btn[style*="cursor: not-allowed"] {
+  background: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.btn[style*="cursor: not-allowed"]:hover {
+  background: #6c757d !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 </style>
 

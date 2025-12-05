@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const menuBtn = document.getElementById('menu-toggle');
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
     
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
@@ -26,47 +27,41 @@ document.addEventListener('DOMContentLoaded', function () {
         const isActive = sidebar.classList.toggle('active');
         sidebar.setAttribute('aria-hidden', !isActive);
         
-        // Update Lucide icons after toggle (in case menu icon needs change)
+        // Update Lucide icons after toggle
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     });
 
-    // ESC key closes sidebar (optional - you can remove this too if you want)
+    // Close sidebar when overlay is clicked (mobile only)
+    if (overlay) {
+        overlay.addEventListener('click', function () {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+                sidebar.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
+    // Close sidebar when clicking on sidebar links (mobile only)
+    const navItems = sidebar.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function () {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+                sidebar.setAttribute('aria-hidden', 'true');
+            }
+        });
+    });
+
+    // ESC key closes sidebar
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             sidebar.classList.remove('active');
             sidebar.setAttribute('aria-hidden', 'true');
         }
     });
-
-    // REMOVED: Click outside sidebar to close functionality
-    // This keeps the sidebar open until the menu button is clicked again
 });
-
-function filterTable() {
-  const searchValue = document.getElementById('searchName').value.toLowerCase();
-  const fromDate = document.getElementById('fromDate').value;
-  const toDate = document.getElementById('toDate').value;
-  const rows = document.querySelectorAll('tbody tr');
-
-  rows.forEach(row => {
-    const name = row.cells[0].textContent.toLowerCase();
-    const date = row.cells[4].textContent;
-    let visible = true;
-
-    if (searchValue && !name.includes(searchValue)) visible = false;
-    if (fromDate && date < fromDate) visible = false;
-    if (toDate && date > toDate) visible = false;
-
-    row.style.display = visible ? '' : 'none';
-  });
-}
-
-function parseDate(value) {
-  if (!value) return null;
-  return new Date(value + 'T00:00:00');
-}
 
 function filterTable() {
   const searchValue = (document.getElementById('searchName') || {value:''}).value.toLowerCase();
@@ -107,6 +102,11 @@ function filterTable() {
   });
 }
 
+function parseDate(value) {
+  if (!value) return null;
+  return new Date(value + 'T00:00:00');
+}
+
 function confirmDelete(ev, url) {
   ev.preventDefault();
   if (confirm('Are you sure you want to delete this?')) {
@@ -114,7 +114,6 @@ function confirmDelete(ev, url) {
   }
 }
 
-// In the showEvidence function, update the image src URL
 function showEvidence(entryId) {
     fetch(`/logbook/evidence/${entryId}`)
         .then(response => response.json())

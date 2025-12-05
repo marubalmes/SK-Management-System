@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h3 style="margin: 0;">Budget Entry Approvals</h3>
+    <div style="display: flex; gap: 10px;">
+      <a class="btn btn-secondary" href="{{ url_for('budgets') }}?sidebar=open">
+        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Budgets
+      </a>
+    </div>
+  </div>
+
+  <!-- Tabs for different approval statuses -->
+  <div class="card" style="margin-bottom: 20px;">
+    <div style="display: flex; border-bottom: 1px solid #e9ecef; margin-bottom: 20px;">
+      <button class="tab-button active" onclick="showTab('pending')" style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600; border-bottom: 3px solid #ff9800;">
+        <i data-lucide="clock" style="width:16px;height:16px;"></i> Pending ({{ pending_entries|length }})
+      </button>
+      <button class="tab-button" onclick="showTab('approved')" style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600;">
+        <i data-lucide="check-circle" style="width:16px;height:16px;"></i> Approved ({{ approved_entries|length }})
+      </button>
+      <button class="tab-button" onclick="showTab('rejected')" style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600;">
+        <i data-lucide="x-circle" style="width:16px;height:16px;"></i> Rejected ({{ rejected_entries|length }})
+      </button>
+      <button class="tab-button" onclick="showTab('allocations')" style="padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 600;">
+        <i data-lucide="folder" style="width:16px;height:16px;"></i> Project Allocations ({{ pending_allocations|length }})
+</button>
+    </div>
+
+    <!-- Pending Tab -->
+    <div id="pending-tab" class="tab-content">
+      {% if pending_entries %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="background: #ff9800; color: white;">Budget</th>
+              <th style="background: #ff9800; color: white;">Type</th>
+              <th style="background: #ff9800; color: white;">Amount</th>
+              <th style="background: #ff9800; color: white;">Description</th>
+              <th style="background: #ff9800; color: white;">Date</th>
+              <th style="background: #ff9800; color: white;">Created By</th>
+              <th style="background: #ff9800; color: white;">Project</th>
+              <th style="background: #ff9800; color: white;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in pending_entries %}
+            <tr>
+              <td>
+                <strong>{{ entry.budget_name }}</strong>
+              </td>
+              <td>
+                <span class="status-badge {% if entry.entry_type == 'increase' %}status-approved{% else %}status-pending{% endif %}">
+                  {{ entry.entry_type|upper }}
+                </span>
+              </td>
+              <td style="font-weight: 700; color: {% if entry.entry_type == 'increase' %}#28a745{% else %}#dc3545{% endif %};">
+                ₱{{ "%.2f"|format(entry.amount|float) }}
+              </td>
+              <td>{{ entry.description }}</td>
+              <td>{{ entry.entry_date.strftime('%Y-%m-%d') }}</td>
+              <td>{{ entry.creator_name }}</td>
+              <td>
+                {% if entry.project_name %}
+                  <span class="status-badge" style="background: #e3f2fd; color: #1565c0;">
+                    {{ entry.project_name }}
+                  </span>
+                {% else %}
+                  <span style="color: #6c757d;">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if session.user.role == 'SK_Chairman' %}
+                <div style="display: flex; gap: 6px;">
+                  <form method="POST" action="{{ url_for('approve_budget_entry', budget_id=entry.budget_id, entry_id=entry.id) }}" style="display: inline;">
+                    <button type="submit" class="btn-outline" style="border-color: #28a745; color: #28a745; padding: 6px 10px;">
+                      <i data-lucide="check" style="width:14px;height:14px;"></i> Approve
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ url_for('reject_budget_entry', budget_id=entry.budget_id, entry_id=entry.id) }}" style="display: inline;">
+                    <button type="submit" class="btn-outline" style="border-color: #dc3545; color: #dc3545; padding: 6px 10px;">
+                      <i data-lucide="x" style="width:14px;height:14px;"></i> Reject
+                    </button>
+                  </form>
+                </div>
+                {% else %}
+                  <span style="color: #6c757d; font-size: 0.9em;">Waiting for SK Chairman approval</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 30px; color: #6c757d;">
+        <i data-lucide="check-circle" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
+        <p>No pending budget entries for approval</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Approved Tab -->
+    <div id="approved-tab" class="tab-content" style="display: none;">
+      {% if approved_entries %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="background: #28a745; color: white;">Budget</th>
+              <th style="background: #28a745; color: white;">Type</th>
+              <th style="background: #28a745; color: white;">Amount</th>
+              <th style="background: #28a745; color: white;">Description</th>
+              <th style="background: #28a745; color: white;">Date</th>
+              <th style="background: #28a745; color: white;">Approved By</th>
+              <th style="background: #28a745; color: white;">Project</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in approved_entries %}
+            <tr>
+              <td>
+                <strong>{{ entry.budget_name }}</strong>
+              </td>
+              <td>
+                <span class="status-badge status-approved">
+                  {{ entry.entry_type|upper }}
+                </span>
+              </td>
+              <td style="font-weight: 700; color: {% if entry.entry_type == 'increase' %}#28a745{% else %}#dc3545{% endif %};">
+                ₱{{ "%.2f"|format(entry.amount|float) }}
+              </td>
+              <td>{{ entry.description }}</td>
+              <td>{{ entry.entry_date.strftime('%Y-%m-%d') }}</td>
+              <td>
+                {% if entry.approver_name %}
+                  {{ entry.approver_name }}
+                {% else %}
+                  <span style="color: #6c757d;">Auto-approved</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if entry.project_name %}
+                  <span class="status-badge" style="background: #e3f2fd; color: #1565c0;">
+                    {{ entry.project_name }}
+                  </span>
+                {% else %}
+                  <span style="color: #6c757d;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 30px; color: #6c757d;">
+        <i data-lucide="check-circle" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
+        <p>No approved budget entries yet</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Rejected Tab -->
+    <div id="rejected-tab" class="tab-content" style="display: none;">
+      {% if rejected_entries %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="background: #dc3545; color: white;">Budget</th>
+              <th style="background: #dc3545; color: white;">Type</th>
+              <th style="background: #dc3545; color: white;">Amount</th>
+              <th style="background: #dc3545; color: white;">Description</th>
+              <th style="background: #dc3545; color: white;">Date</th>
+              <th style="background: #dc3545; color: white;">Rejected By</th>
+              <th style="background: #dc3545; color: white;">Project</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in rejected_entries %}
+            <tr>
+              <td>
+                <strong>{{ entry.budget_name }}</strong>
+              </td>
+              <td>
+                <span class="status-badge status-rejected">
+                  {{ entry.entry_type|upper }}
+                </span>
+              </td>
+              <td style="font-weight: 700; color: #dc3545;">
+                ₱{{ "%.2f"|format(entry.amount|float) }}
+              </td>
+              <td>{{ entry.description }}</td>
+              <td>{{ entry.entry_date.strftime('%Y-%m-%d') }}</td>
+              <td>
+                {% if entry.approver_name %}
+                  {{ entry.approver_name }}
+                {% else %}
+                  <span style="color: #6c757d;">System</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if entry.project_name %}
+                  <span class="status-badge" style="background: #e3f2fd; color: #1565c0;">
+                    {{ entry.project_name }}
+                  </span>
+                {% else %}
+                  <span style="color: #6c757d;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 30px; color: #6c757d;">
+        <i data-lucide="x-circle" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
+        <p>No rejected budget entries</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div id="allocations-tab" class="tab-content" style="display: none;">
+  {% if pending_allocations %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="background: #17a2b8; color: white;">Budget</th>
+          <th style="background: #17a2b8; color: white;">Project</th>
+          <th style="background: #17a2b8; color: white;">Amount</th>
+          <th style="background: #17a2b8; color: white;">Project Status</th>
+          <th style="background: #17a2b8; color: white;">Requested By</th>
+          <th style="background: #17a2b8; color: white;">Date</th>
+          <th style="background: #17a2b8; color: white;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for allocation in pending_allocations %}
+        <tr>
+          <td>
+            <strong>{{ allocation.budget_name }}</strong>
+          </td>
+          <td>
+            <strong>{{ allocation.project_name }}</strong>
+          </td>
+          <td style="font-weight: 700; color: #dc3545;">
+            -₱{{ "%.2f"|format(allocation.allocated_amount|float) }}
+          </td>
+          <td>
+            <span class="status-badge status-{{ allocation.project_status|lower|replace(' ', '-') }}">
+              {{ allocation.project_status }}
+            </span>
+          </td>
+          <td>{{ allocation.creator_name }}</td>
+          <td>{{ allocation.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>
+            <div style="display: flex; gap: 6px;">
+              <form method="POST" action="{{ url_for('approve_project_allocation', budget_id=allocation.budget_id, allocation_id=allocation.id) }}" style="display: inline;">
+                <button type="submit" class="btn-outline" style="border-color: #28a745; color: #28a745; padding: 6px 10px;">
+                  <i data-lucide="check" style="width:14px;height:14px;"></i> Approve
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('reject_project_allocation', budget_id=allocation.budget_id, allocation_id=allocation.id) }}" style="display: inline;">
+                <button type="submit" class="btn-outline" style="border-color: #dc3545; color: #dc3545; padding: 6px 10px;">
+                  <i data-lucide="x" style="width:14px;height:14px;"></i> Reject
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align: center; padding: 30px; color: #6c757d;">
+    <i data-lucide="folder" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
+    <p>No pending project allocations for approval</p>
+  </div>
+  {% endif %}
+</div>
+<style>
+.tab-button {
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  color: #f57c00;
+}
+
+.tab-button.active {
+  color: #f57c00;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: top;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #ff9800;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(255,152,0,0.3);
+}
+
+.btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
+  color: white;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-approved { background: #d4edda; color: #155724; }
+.status-rejected { background: #f8d7da; color: #721c24; }
+</style>
+
+<script>
+function showTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  
+  // Remove active class from all buttons
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.classList.remove('active');
+    button.style.borderBottom = 'none';
+  });
+  
+  // Show selected tab
+  document.getElementById(tabName + '-tab').style.display = 'block';
+  
+  // Add active class to clicked button
+  event.target.classList.add('active');
+  event.target.style.borderBottom = '3px solid #ff9800';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+});
+</script>
+{% endblock %}

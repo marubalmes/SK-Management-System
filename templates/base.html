@@ -361,7 +361,11 @@
           <i data-lucide="file-text"></i>
           <span class="nav-label">Reports</span>
         </a>
-        
+        <!-- Add this line in the sidebar -->
+        <a href="{{ url_for('budgets') }}" class="nav-item">
+            <i data-lucide="credit-card"></i>
+            <span class="nav-label">Budgets</span>
+        </a>
         <!-- Add role-based links if needed -->
         {% if session.user.role == 'super_admin' %}
         <a href="{{ url_for('user_management') }}" class="nav-item">
@@ -375,6 +379,7 @@
       {% endif %}
     </nav>
   </div>
+  <div class="sidebar-overlay"></div>
   {% endif %}
 
   <!-- Flash messages -->

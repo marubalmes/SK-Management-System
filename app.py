@@ -5,6 +5,7 @@ from flask_mysqldb import MySQL
 import os
 from werkzeug.utils import secure_filename
 from collections import defaultdict
+from decimal import Decimal
 
 # --- Config ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,9 +26,11 @@ UPLOAD_BASE = os.path.join(app.static_folder, 'uploads')
 PROJECT_UPLOADS = os.path.join(UPLOAD_BASE, 'projects')
 REPORT_UPLOADS = os.path.join(UPLOAD_BASE, 'reports')
 LOGBOOK_EVIDENCE_UPLOADS = os.path.join(UPLOAD_BASE, 'logbook_evidence')
+BUDGET_EVIDENCE_UPLOADS = os.path.join(UPLOAD_BASE, 'budget_evidence')
 os.makedirs(PROJECT_UPLOADS, exist_ok=True)
 os.makedirs(REPORT_UPLOADS, exist_ok=True)
-os.makedirs(LOGBOOK_EVIDENCE_UPLOADS, exist_ok=True)  # This matches your existing folder
+os.makedirs(LOGBOOK_EVIDENCE_UPLOADS, exist_ok=True)
+os.makedirs(BUDGET_EVIDENCE_UPLOADS, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'xlsx', 'csv'}
 
@@ -145,6 +148,16 @@ def get_dashboard_analytics():
     cur.execute("SELECT COUNT(*) as count FROM users")
     users_total = cur.fetchone()['count']
     
+    # Get budget statistics
+    cur.execute("SELECT COUNT(*) as count FROM budgets")
+    budgets_total = cur.fetchone()['count']
+    
+    cur.execute("SELECT COALESCE(SUM(current_balance), 0) as total_balance FROM budgets")
+    total_budget_balance = cur.fetchone()['total_balance']
+    
+    cur.execute("SELECT COUNT(*) as count FROM budget_entries WHERE status='pending'")
+    pending_approvals = cur.fetchone()['count']
+    
     # Get user roles count
     cur.execute("SELECT role, COUNT(*) as count FROM users GROUP BY role")
     roles_data = cur.fetchall()
@@ -192,6 +205,9 @@ def get_dashboard_analytics():
         'logbook_total': logbook_total,
         'logbook_today': logbook_today,
         'users_total': users_total,
+        'budgets_total': budgets_total,
+        'total_budget_balance': total_budget_balance,
+        'pending_approvals': pending_approvals,
         'roles_count': roles_count,
         'report_categories': report_categories,
         'report_counts': report_counts,
@@ -251,6 +267,21 @@ def get_recent_activities():
                 'type': 'logbook',
                 'description': f'New logbook entry: {entry["first_name"]} {entry["last_name"]}',
                 'time': entry['date'].strftime('%H:%M') if entry['date'] else 'N/A'
+            })
+        
+        # Recent budget activities
+        cur.execute("""
+            SELECT description, performed_at 
+            FROM budget_activity_history 
+            ORDER BY performed_at DESC 
+            LIMIT 5
+        """)
+        recent_budget_activities = cur.fetchall()
+        for activity in recent_budget_activities:
+            activities.append({
+                'type': 'budget',
+                'description': f'Budget activity: {activity["description"]}',
+                'time': activity['performed_at'].strftime('%H:%M') if activity['performed_at'] else 'N/A'
             })
     
     except Exception as e:
@@ -338,7 +369,6 @@ def dashboard():
                          **analytics)
 
 
-# --- SUPER ADMIN ---
 # --- SUPER ADMIN ---
 @app.route('/superadmin')
 @login_required(role='super_admin')
@@ -460,7 +490,6 @@ def delete_user(user_id):
     return redirect(url_for('user_management') + '?sidebar=open')  # ✅ PRESERVE SIDEBAR STATE
 
 
-
 # --- PROJECTS ---
 @app.route('/projects')
 @login_required()
@@ -468,6 +497,23 @@ def projects():
     cur = mysql.connection.cursor()
     cur.execute('SELECT * FROM projects ORDER BY start_date DESC')
     projects = cur.fetchall()
+    
+    # Get budget allocations for each project
+    for project in projects:
+        cur.execute('''
+            SELECT pb.allocated_amount, b.name as budget_name
+            FROM project_budgets pb
+            JOIN budgets b ON pb.budget_id = b.id
+            WHERE pb.project_id=%s
+        ''', (project['id'],))
+        allocation = cur.fetchone()
+        if allocation:
+            project['allocated_budget'] = allocation['allocated_amount']
+            project['budget_name'] = allocation['budget_name']
+        else:
+            project['allocated_budget'] = 0
+            project['budget_name'] = None
+    
     cur.close()
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
@@ -544,6 +590,10 @@ def project_delete(proj_id):
     flash('Project deleted successfully!', 'info')
     return redirect(url_for('projects') + '?sidebar=open')  # ✅ PRESERVE SIDEBAR STATE
 
+    if session['user']['role'] in ['Treasurer', 'BMO']:
+        flash('Access denied: Treasurer and BMO can only view projects, not delete them', 'danger')
+        return redirect(url_for('projects'))
+    
 
 # --- PROJECT UPDATES & MANAGEMENT ---
 @app.route('/projects/<int:proj_id>/updates', methods=['GET', 'POST'])
@@ -981,6 +1031,11 @@ def reports():
 @app.route('/reports/new', methods=['GET', 'POST'])
 @login_required()
 def report_new():
+    # Restrict access for Treasurer and BMO - VIEW ONLY
+    if session['user']['role'] in ['Treasurer', 'BMO']:
+        flash('Access denied: Treasurer and BMO can only view reports, not create them', 'danger')
+        return redirect(url_for('reports'))
+    
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
     
@@ -1030,6 +1085,11 @@ def report_new():
 @app.route('/reports/edit/<int:rep_id>', methods=['GET', 'POST'])
 @login_required()
 def report_edit(rep_id):
+    # Restrict access for Treasurer and BMO - VIEW ONLY
+    if session['user']['role'] in ['Treasurer', 'BMO']:
+        flash('Access denied: Treasurer and BMO can only view reports, not edit them', 'danger')
+        return redirect(url_for('reports'))
+    
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
     
@@ -1197,12 +1257,1110 @@ def bmo_dashboard():
                          **analytics)
 
 
+# ====== BUDGET MANAGEMENT ROUTES ======
+
+@app.route('/budget_approvals')
+@login_required()
+def budget_approvals():
+    """Page to view and manage budget approvals"""
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
+    cur = mysql.connection.cursor()
+    
+    # Get all budget entries with their status - UPDATED QUERY to include project info
+    cur.execute('''
+        SELECT be.*, b.name as budget_name, u.fullname as creator_name, 
+               au.fullname as approver_name,
+               p.name as project_name
+        FROM budget_entries be
+        JOIN budgets b ON be.budget_id = b.id
+        JOIN users u ON be.created_by = u.id
+        LEFT JOIN users au ON be.approved_by = au.id
+        LEFT JOIN projects p ON be.project_id = p.id
+        ORDER BY 
+            CASE be.status 
+                WHEN 'pending' THEN 1
+                WHEN 'approved' THEN 2
+                WHEN 'rejected' THEN 3
+            END,
+            be.entry_date DESC,
+            be.created_at DESC
+    ''')
+    all_entries = cur.fetchall()
+    
+    # Get pending project allocations - ADDED THIS QUERY
+    cur.execute('''
+        SELECT pb.*, b.name as budget_name, p.name as project_name, 
+               p.status as project_status, u.fullname as creator_name
+        FROM project_budgets pb
+        JOIN budgets b ON pb.budget_id = b.id
+        JOIN projects p ON pb.project_id = p.id
+        JOIN users u ON pb.created_by = u.id
+        WHERE pb.status = 'pending'
+        ORDER BY pb.created_at DESC
+    ''')
+    pending_allocations = cur.fetchall()
+    
+    # Group entries by status
+    pending_entries = [e for e in all_entries if e['status'] == 'pending']
+    approved_entries = [e for e in all_entries if e['status'] == 'approved']
+    rejected_entries = [e for e in all_entries if e['status'] == 'rejected']
+    
+    cur.close()
+    
+    return render_template('budget_approvals.html',
+                         pending_entries=pending_entries,
+                         approved_entries=approved_entries,
+                         rejected_entries=rejected_entries,
+                         pending_allocations=pending_allocations,  # ADDED THIS PARAMETER
+                         sidebar_open=sidebar_open)
+
+@app.route('/budgets')
+@login_required()
+def budgets():
+    # Restrict access for Treasurer, BMO, and Secretary to view only
+    if session['user']['role'] in ['Secretary']:
+        is_view_only = True
+    elif session['user']['role'] in ['Treasurer', 'BMO']:
+        # Allow Treasurer and BMO to create entries (but they need approval)
+        is_view_only = False
+    else:
+        # SK_Chairman and super_admin have full access
+        is_view_only = False
+    
+    cur = mysql.connection.cursor()
+    
+    # Get all budgets
+    cur.execute('SELECT * FROM budgets ORDER BY created_at DESC')
+    budgets_data = cur.fetchall()
+    
+    # Get budget statistics and linked projects
+    for budget in budgets_data:
+        cur.execute('''
+            SELECT 
+                SUM(CASE WHEN entry_type='increase' AND status='approved' THEN amount ELSE 0 END) as total_income,
+                SUM(CASE WHEN entry_type='decrease' AND status='approved' THEN amount ELSE 0 END) as total_expenses
+            FROM budget_entries 
+            WHERE budget_id=%s
+        ''', (budget['id'],))
+        stats = cur.fetchone()
+        budget['total_income'] = stats['total_income'] or 0
+        budget['total_expenses'] = stats['total_expenses'] or 0
+        
+        # Get pending approvals count
+        cur.execute('SELECT COUNT(*) as count FROM budget_entries WHERE budget_id=%s AND status="pending"', (budget['id'],))
+        pending = cur.fetchone()
+        budget['pending_approvals'] = pending['count']
+        
+        # Get linked projects
+        cur.execute('''
+            SELECT p.name FROM projects p
+            JOIN project_budgets pb ON p.id = pb.project_id
+            WHERE pb.budget_id=%s
+        ''', (budget['id'],))
+        linked_projects = cur.fetchall()
+        budget['linked_projects'] = linked_projects
+    
+    # Get recent activity
+    cur.execute('''
+        SELECT h.*, u.fullname as performer_name, b.name as budget_name
+        FROM budget_activity_history h
+        LEFT JOIN users u ON h.performed_by = u.id
+        LEFT JOIN budgets b ON h.budget_id = b.id
+        ORDER BY h.performed_at DESC LIMIT 10
+    ''')
+    recent_activity = cur.fetchall()
+    
+    cur.close()
+    
+    sidebar_open = request.args.get('sidebar') == 'open'
+    return render_template('budgets.html', 
+                         budgets=budgets_data, 
+                         recent_activity=recent_activity,
+                         is_view_only=is_view_only,
+                         sidebar_open=sidebar_open)
+
+
+@app.route('/budgets/new', methods=['GET', 'POST'])
+@login_required()
+def new_budget():
+    # Restrict access: Only SK_Chairman, Treasurer, BMO, and super_admin can create budgets
+    if session['user']['role'] not in ['SK_Chairman', 'Treasurer', 'BMO', 'super_admin']:
+        flash('Access denied: Only SK Chairman, Treasurer, BMO, and Super Admin can create budgets', 'danger')
+        return redirect(url_for('budgets'))
+    
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        initial_amount = request.form.get('initial_amount', '0').strip()
+        
+        if not name:
+            flash('Budget name is required', 'danger')
+            return redirect(url_for('new_budget'))
+        
+        try:
+            initial_amount = Decimal(initial_amount)
+        except:
+            initial_amount = Decimal('0')
+        
+        cur = mysql.connection.cursor()
+        cur.execute(
+            'INSERT INTO budgets (name, total_amount, current_balance, created_by) VALUES (%s, %s, %s, %s)',
+            (name, initial_amount, initial_amount, session['user']['id'])
+        )
+        budget_id = cur.lastrowid
+        
+        # If there's initial amount, create an entry with proper approval status
+        if initial_amount > 0:
+            # Determine approval status based on user role
+            # Only SK_Chairman and super_admin can auto-approve their own entries
+            if session['user']['role'] in ['SK_Chairman', 'super_admin']:
+                status = 'approved'
+                approved_by = session['user']['id']
+                approved_at = datetime.utcnow()
+            else:
+                # Treasurer and BMO entries need SK Chairman approval
+                status = 'pending'
+                approved_by = None
+                approved_at = None
+            
+            cur.execute('''
+                INSERT INTO budget_entries 
+                (budget_id, entry_type, amount, description, entry_date, status, approved_by, approved_at, created_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                budget_id, 'increase', initial_amount, 'Initial budget allocation',
+                datetime.now().date(), status, approved_by, 
+                approved_at, session['user']['id']
+            ))
+            
+            # Log activity based on status
+            if status == 'approved':
+                activity_desc = f'Budget "{name}" created with initial amount of ₱{initial_amount:,.2f}'
+                activity_type = 'budget_created'
+            else:
+                activity_desc = f'Budget "{name}" created with initial amount of ₱{initial_amount:,.2f} (pending approval)'
+                activity_type = 'budget_created_pending'
+            
+            cur.execute('''
+                INSERT INTO budget_activity_history 
+                (budget_id, activity_type, description, amount_changed, old_balance, new_balance, performed_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                budget_id, activity_type, activity_desc,
+                initial_amount, 0, initial_amount, session['user']['id']
+            ))
+        
+        mysql.connection.commit()
+        cur.close()
+        
+        flash(f'Budget "{name}" created successfully!', 'success')
+        return redirect(url_for('budgets') + '?sidebar=open')
+    
+    return render_template('new_budget_entry.html', sidebar_open=sidebar_open)
+
+
+@app.route('/budgets/<int:budget_id>/entries/new', methods=['GET', 'POST'])
+@login_required()
+def new_budget_entry(budget_id):
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM budgets WHERE id=%s', (budget_id,))
+    budget = cur.fetchone()
+    
+    if not budget:
+        flash('Budget not found', 'danger')
+        cur.close()
+        return redirect(url_for('budgets'))
+    
+    if request.method == 'POST':
+        entry_type = request.form.get('entry_type', '').strip()
+        amount = request.form.get('amount', '0').strip()
+        description = request.form.get('description', '').strip()
+        entry_date = request.form.get('entry_date', '') or datetime.now().date()
+        evidence_file = request.files.get('evidence')
+        project_id = request.form.get('project_id') or None
+        
+        if not entry_type or not amount or not description:
+            flash('Please fill all required fields', 'danger')
+            return redirect(url_for('new_budget_entry', budget_id=budget_id))
+        
+        try:
+            amount = Decimal(amount)
+        except:
+            flash('Invalid amount', 'danger')
+            return redirect(url_for('new_budget_entry', budget_id=budget_id))
+        
+        # Check if user needs approval
+        # Only SK_Chairman and super_admin can auto-approve
+        if session['user']['role'] in ['SK_Chairman', 'super_admin']:
+            status = 'approved'
+            approved_by = session['user']['id']
+            approved_at = datetime.utcnow()
+        else:
+            # Treasurer, BMO, and Secretary need SK Chairman approval
+            status = 'pending'
+            approved_by = None
+            approved_at = None
+        
+        # Handle evidence file
+        evidence_filename = None
+        if evidence_file and evidence_file.filename:
+            if allowed_file(evidence_file.filename):
+                safe = secure_filename(evidence_file.filename)
+                dest = os.path.join(BUDGET_EVIDENCE_UPLOADS, safe)
+                evidence_file.save(dest)
+                evidence_filename = f'uploads/budget_evidence/{safe}'
+            else:
+                flash('File type not allowed', 'danger')
+                return redirect(url_for('new_budget_entry', budget_id=budget_id))
+        
+        # Create the entry
+        cur.execute('''
+            INSERT INTO budget_entries 
+            (budget_id, entry_type, amount, description, entry_date, status, 
+             approved_by, approved_at, evidence_filename, created_by, project_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (
+            budget_id, entry_type, amount, description, entry_date, status,
+            approved_by, approved_at, evidence_filename, session['user']['id'], project_id
+        ))
+        entry_id = cur.lastrowid
+        
+        # Log activity
+        if status == 'approved':
+            # Update budget balance if approved immediately
+            if entry_type == 'increase':
+                new_balance = budget['current_balance'] + amount
+                cur.execute('UPDATE budgets SET current_balance=%s WHERE id=%s', (new_balance, budget_id))
+            else:
+                new_balance = budget['current_balance'] - amount
+                cur.execute('UPDATE budgets SET current_balance=%s WHERE id=%s', (new_balance, budget_id))
+            
+            # Log activity
+            cur.execute('''
+                INSERT INTO budget_activity_history 
+                (budget_id, entry_id, activity_type, description, amount_changed, old_balance, new_balance, performed_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                budget_id, entry_id, 'entry_approved',
+                f'{"Increase" if entry_type == "increase" else "Decrease"} of ₱{amount:,.2f} approved: {description}',
+                amount, budget['current_balance'], new_balance, session['user']['id']
+            ))
+        else:
+            # Log pending activity
+            cur.execute('''
+                INSERT INTO budget_activity_history 
+                (budget_id, entry_id, activity_type, description, performed_by)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (
+                budget_id, entry_id, 'entry_created_pending',
+                f'{"Increase" if entry_type == "increase" else "Decrease"} of ₱{amount:,.2f} created (pending approval): {description}',
+                session['user']['id']
+            ))
+        
+        mysql.connection.commit()
+        cur.close()
+        
+        flash(f'Budget entry created successfully! Status: {status}', 'success')
+        return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+    
+    # Get available projects for linking
+    cur.execute('SELECT id, name FROM projects ORDER BY name')
+    projects = cur.fetchall()
+    
+    cur.close()
+    
+    # FIX: Pass datetime module to template
+    return render_template('new_budget_entry.html', 
+                         budget=budget, 
+                         projects=projects,
+                         datetime=datetime,  # Add this line
+                         sidebar_open=sidebar_open)
+
+
+@app.route('/budgets/<int:budget_id>')
+@login_required()
+def budget_details(budget_id):
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
+    cur = mysql.connection.cursor()
+    
+    # Get budget details
+    cur.execute('SELECT * FROM budgets WHERE id=%s', (budget_id,))
+    budget = cur.fetchone()
+    
+    if not budget:
+        flash('Budget not found', 'danger')
+        cur.close()
+        return redirect(url_for('budgets'))
+    
+    # Get budget entries
+    cur.execute('''
+        SELECT be.*, u.fullname as creator_name, 
+               au.fullname as approver_name,
+               p.name as project_name
+        FROM budget_entries be
+        LEFT JOIN users u ON be.created_by = u.id
+        LEFT JOIN users au ON be.approved_by = au.id
+        LEFT JOIN projects p ON be.project_id = p.id
+        WHERE be.budget_id=%s
+        ORDER BY be.entry_date DESC, be.created_at DESC
+    ''', (budget_id,))
+    entries = cur.fetchall()
+    
+    # Get projects linked to this budget - UPDATED QUERY to include status
+    cur.execute('''
+        SELECT pb.*, p.name as project_name, p.status as project_status,
+               u.fullname as approver_name
+        FROM project_budgets pb
+        JOIN projects p ON pb.project_id = p.id
+        LEFT JOIN users u ON pb.approved_by = u.id
+        WHERE pb.budget_id=%s
+        ORDER BY 
+            CASE pb.status 
+                WHEN 'pending' THEN 1
+                WHEN 'approved' THEN 2
+                WHEN 'rejected' THEN 3
+            END,
+            pb.created_at DESC
+    ''', (budget_id,))
+    project_allocations = cur.fetchall()
+    
+    # Get activity history for this budget
+    cur.execute('''
+        SELECT h.*, u.fullname as performer_name
+        FROM budget_activity_history h
+        LEFT JOIN users u ON h.performed_by = u.id
+        WHERE h.budget_id=%s
+        ORDER BY h.performed_at DESC
+        LIMIT 20
+    ''', (budget_id,))
+    activity_history = cur.fetchall()
+    
+    # Calculate statistics
+    cur.execute('''
+        SELECT 
+            SUM(CASE WHEN entry_type='increase' AND status='approved' THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN entry_type='decrease' AND status='approved' THEN amount ELSE 0 END) as total_expenses,
+            COUNT(CASE WHEN status='pending' THEN 1 END) as pending_count
+        FROM budget_entries 
+        WHERE budget_id=%s
+    ''', (budget_id,))
+    stats = cur.fetchone()
+    
+    # Get all projects for allocation dropdown
+    cur.execute('SELECT id, name FROM projects ORDER BY name')
+    projects = cur.fetchall()
+    
+    cur.close()
+    
+    return render_template('budget_details.html',
+                         budget=budget,
+                         entries=entries,
+                         project_allocations=project_allocations,
+                         activity_history=activity_history,
+                         stats=stats,
+                         projects=projects,
+                         sidebar_open=sidebar_open)
+
+
+# --- BUDGET ENTRY APPROVAL ROUTES ---
+@app.route('/budgets/<int:budget_id>/entries/<int:entry_id>/approve', methods=['POST'])
+@login_required(role='SK_Chairman')
+def approve_budget_entry(budget_id, entry_id):
+    cur = mysql.connection.cursor()
+    
+    # Get entry and budget details
+    cur.execute('''
+        SELECT be.*, b.current_balance 
+        FROM budget_entries be
+        JOIN budgets b ON be.budget_id = b.id
+        WHERE be.id=%s AND be.budget_id=%s
+    ''', (entry_id, budget_id))
+    entry = cur.fetchone()
+    
+    if not entry:
+        flash('Entry not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    if entry['status'] != 'pending':
+        flash('This entry is not pending approval', 'info')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Update entry status
+    cur.execute('''
+        UPDATE budget_entries 
+        SET status="approved", approved_by=%s, approved_at=%s 
+        WHERE id=%s
+    ''', (session['user']['id'], datetime.utcnow(), entry_id))
+    
+    # Update budget balance
+    if entry['entry_type'] == 'increase':
+        new_balance = entry['current_balance'] + entry['amount']
+    else:
+        # Check if budget has sufficient balance for decrease
+        if entry['current_balance'] < entry['amount']:
+            flash('Insufficient budget balance for this expense', 'danger')
+            cur.close()
+            return redirect(url_for('budget_details', budget_id=budget_id))
+        new_balance = entry['current_balance'] - entry['amount']
+    
+    cur.execute('UPDATE budgets SET current_balance=%s WHERE id=%s', (new_balance, budget_id))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, entry_id, activity_type, description, amount_changed, old_balance, new_balance, performed_by)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        budget_id, entry_id, 'entry_approved',
+        f'{"Increase" if entry["entry_type"] == "increase" else "Decrease"} of ₱{entry["amount"]:,.2f} approved: {entry["description"]}',
+        entry['amount'], entry['current_balance'], new_balance, session['user']['id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Budget entry approved successfully!', 'success')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/budgets/<int:budget_id>/entries/<int:entry_id>/reject', methods=['POST'])
+@login_required(role='SK_Chairman')
+def reject_budget_entry(budget_id, entry_id):
+    cur = mysql.connection.cursor()
+    
+    cur.execute('SELECT * FROM budget_entries WHERE id=%s AND budget_id=%s', (entry_id, budget_id))
+    entry = cur.fetchone()
+    
+    if not entry:
+        flash('Entry not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    if entry['status'] != 'pending':
+        flash('This entry is not pending approval', 'info')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Update entry status to rejected
+    cur.execute('''
+        UPDATE budget_entries 
+        SET status="rejected", approved_by=%s, approved_at=%s 
+        WHERE id=%s
+    ''', (session['user']['id'], datetime.utcnow(), entry_id))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, entry_id, activity_type, description, performed_by)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (
+        budget_id, entry_id, 'entry_rejected',
+        f'{"Increase" if entry["entry_type"] == "increase" else "Decrease"} of ₱{entry["amount"]:,.2f} rejected: {entry["description"]}',
+        session['user']['id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Budget entry rejected successfully!', 'info')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+# --- PROJECT ALLOCATION APPROVAL ROUTES ---
+@app.route('/budgets/<int:budget_id>/project_allocation/<int:allocation_id>/approve', methods=['POST'])
+@login_required(role='SK_Chairman')
+def approve_project_allocation(budget_id, allocation_id):
+    cur = mysql.connection.cursor()
+    
+    # Get allocation details
+    cur.execute('''
+        SELECT pb.*, b.current_balance, b.name as budget_name, p.name as project_name
+        FROM project_budgets pb
+        JOIN budgets b ON pb.budget_id = b.id
+        JOIN projects p ON pb.project_id = p.id
+        WHERE pb.id=%s AND pb.budget_id=%s
+    ''', (allocation_id, budget_id))
+    allocation = cur.fetchone()
+    
+    if not allocation:
+        flash('Allocation not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Check if budget has sufficient balance
+    if allocation['allocated_amount'] > allocation['current_balance']:
+        flash(f'Insufficient budget balance. Available: ₱{allocation["current_balance"]:,.2f}', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Create a decrease entry for the allocation (approved)
+    cur.execute('''
+        INSERT INTO budget_entries 
+        (budget_id, entry_type, amount, description, entry_date, status, approved_by, approved_at, created_by, project_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        budget_id, 'decrease', allocation['allocated_amount'], 
+        f'Budget allocation to project: {allocation["project_name"]}',
+        datetime.now().date(), 'approved', session['user']['id'], 
+        datetime.utcnow(), session['user']['id'], allocation['project_id']
+    ))
+    entry_id = cur.lastrowid
+    
+    # Update budget balance
+    new_balance = allocation['current_balance'] - allocation['allocated_amount']
+    cur.execute('UPDATE budgets SET current_balance=%s WHERE id=%s', (new_balance, budget_id))
+    
+    # Update allocation status to approved
+    cur.execute('UPDATE project_budgets SET status="approved", approved_by=%s, approved_at=%s WHERE id=%s',
+                (session['user']['id'], datetime.utcnow(), allocation_id))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, entry_id, activity_type, description, amount_changed, old_balance, new_balance, performed_by, project_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        budget_id, entry_id, 'project_allocation_approved',
+        f'Project allocation approved: ₱{allocation["allocated_amount"]:,.2f} to {allocation["project_name"]}',
+        allocation['allocated_amount'], allocation['current_balance'], new_balance, 
+        session['user']['id'], allocation['project_id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Project allocation approved successfully!', 'success')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/budgets/<int:budget_id>/project_allocation/<int:allocation_id>/reject', methods=['POST'])
+@login_required(role='SK_Chairman')
+def reject_project_allocation(budget_id, allocation_id):
+    cur = mysql.connection.cursor()
+    
+    cur.execute('SELECT * FROM project_budgets WHERE id=%s AND budget_id=%s', (allocation_id, budget_id))
+    allocation = cur.fetchone()
+    
+    if not allocation:
+        flash('Allocation not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Update allocation status to rejected
+    cur.execute('UPDATE project_budgets SET status="rejected", approved_by=%s, approved_at=%s WHERE id=%s',
+                (session['user']['id'], datetime.utcnow(), allocation_id))
+    
+    # Delete the allocation since it was rejected
+    cur.execute('DELETE FROM project_budgets WHERE id=%s', (allocation_id,))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, activity_type, description, performed_by)
+        VALUES (%s, %s, %s, %s)
+    ''', (
+        budget_id, 'project_allocation_rejected',
+        f'Project allocation rejected: ₱{allocation["allocated_amount"]:,.2f}',
+        session['user']['id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Project allocation rejected successfully!', 'info')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/budgets/<int:budget_id>/allocate_project', methods=['POST'])
+@login_required()
+def allocate_project_budget(budget_id):
+    # UPDATED: Creates pending allocations that require SK Chairman approval
+    # Only SK_Chairman, Treasurer, BMO, and super_admin can allocate budgets
+    if session['user']['role'] not in ['SK_Chairman', 'Treasurer', 'BMO', 'super_admin']:
+        flash('Access denied: Only SK Chairman, Treasurer, BMO, and Super Admin can allocate budgets', 'danger')
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    project_id = request.form.get('project_id')
+    amount = request.form.get('amount', '0').strip()
+    
+    if not project_id or not amount:
+        flash('Please select a project and specify amount', 'danger')
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    try:
+        amount = Decimal(amount)
+    except:
+        flash('Invalid amount', 'danger')
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    cur = mysql.connection.cursor()
+    
+    # Check budget balance (just for warning, not blocking)
+    cur.execute('SELECT current_balance, name FROM budgets WHERE id=%s', (budget_id,))
+    budget = cur.fetchone()
+    
+    cur.execute('SELECT name FROM projects WHERE id=%s', (project_id,))
+    project = cur.fetchone()
+    
+    # Check if project already has pending or approved allocation
+    cur.execute('SELECT * FROM project_budgets WHERE project_id=%s AND budget_id=%s AND status IN ("pending", "approved")', (project_id, budget_id))
+    existing = cur.fetchone()
+    
+    if existing:
+        flash(f'This project already has a {"pending" if existing["status"] == "pending" else "approved"} allocation from this budget', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Create pending allocation (not approved yet)
+    cur.execute('''
+        INSERT INTO project_budgets (project_id, budget_id, allocated_amount, status, created_by)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (project_id, budget_id, amount, 'pending', session['user']['id']))
+    allocation_id = cur.lastrowid
+    
+    # Log activity for pending allocation
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, activity_type, description, performed_by, project_id)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (
+        budget_id, 'project_allocation_pending',
+        f'Project allocation created (pending approval): ₱{amount:,.2f} to {project["name"]}',
+        session['user']['id'], project_id
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash(f'Project allocation created successfully! Status: Pending (requires SK Chairman approval)', 'success')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/budgets/<int:budget_id>/project_allocation/<int:allocation_id>/delete')
+@login_required()
+def delete_project_allocation(budget_id, allocation_id):
+    # UPDATED: Only SK_Chairman, Treasurer, BMO, and super_admin can delete allocations
+    if session['user']['role'] not in ['SK_Chairman', 'Treasurer', 'BMO', 'super_admin']:
+        flash('Access denied: Only SK Chairman, Treasurer, BMO, and Super Admin can manage allocations', 'danger')
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    cur = mysql.connection.cursor()
+    
+    # Get allocation details
+    cur.execute('SELECT * FROM project_budgets WHERE id=%s AND budget_id=%s', (allocation_id, budget_id))
+    allocation = cur.fetchone()
+    
+    if not allocation:
+        flash('Allocation not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Only allow deletion of approved allocations
+    if allocation['status'] != 'approved':
+        flash('Only approved allocations can be removed', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Return allocated amount to budget (create increase entry)
+    cur.execute('''
+        INSERT INTO budget_entries 
+        (budget_id, entry_type, amount, description, entry_date, status, approved_by, approved_at, created_by, project_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        budget_id, 'increase', allocation['allocated_amount'], 
+        f'Returned allocation from project #{allocation["project_id"]}',
+        datetime.now().date(), 'approved', session['user']['id'], 
+        datetime.utcnow(), session['user']['id'], allocation['project_id']
+    ))
+    
+    # Update budget balance
+    cur.execute('SELECT current_balance FROM budgets WHERE id=%s', (budget_id,))
+    budget = cur.fetchone()
+    new_balance = budget['current_balance'] + allocation['allocated_amount']
+    cur.execute('UPDATE budgets SET current_balance=%s WHERE id=%s', (new_balance, budget_id))
+    
+    # Delete allocation
+    cur.execute('DELETE FROM project_budgets WHERE id=%s', (allocation_id,))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, activity_type, description, amount_changed, old_balance, new_balance, performed_by, project_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    ''', (
+        budget_id, 'allocation_removed',
+        f'Project allocation removed: ₱{allocation["allocated_amount"]:,.2f} returned to budget',
+        allocation['allocated_amount'], budget['current_balance'], new_balance, 
+        session['user']['id'], allocation['project_id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Project allocation removed successfully!', 'info')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/budgets/<int:budget_id>/entries/<int:entry_id>/edit_modal', methods=['GET'])
+@login_required()
+def edit_budget_entry_modal(budget_id, entry_id):
+    """Return HTML for edit modal"""
+    cur = mysql.connection.cursor()
+    
+    # Get budget and entry
+    cur.execute('SELECT * FROM budgets WHERE id=%s', (budget_id,))
+    budget = cur.fetchone()
+    
+    cur.execute('''
+        SELECT be.*, u.fullname as creator_name
+        FROM budget_entries be
+        JOIN users u ON be.created_by = u.id
+        WHERE be.id=%s AND be.budget_id=%s
+    ''', (entry_id, budget_id))
+    entry = cur.fetchone()
+    
+    if not budget or not entry:
+        return jsonify({'error': 'Budget or entry not found'}), 404
+    
+    # Get available projects for linking
+    cur.execute('SELECT id, name FROM projects ORDER BY name')
+    projects = cur.fetchall()
+    
+    cur.close()
+    
+    # Render just the modal content
+    return render_template('edit_budget_entry_modal.html',
+                         budget=budget,
+                         entry=entry,
+                         projects=projects)
+
+
+@app.route('/budgets/<int:budget_id>/entries/<int:entry_id>/update', methods=['POST'])
+@login_required()
+def update_budget_entry(budget_id, entry_id):
+    """Update budget entry via AJAX"""
+    cur = mysql.connection.cursor()
+    
+    # Get entry details
+    cur.execute('SELECT * FROM budget_entries WHERE id=%s AND budget_id=%s', (entry_id, budget_id))
+    entry = cur.fetchone()
+    
+    if not entry:
+        return jsonify({'success': False, 'error': 'Entry not found'})
+    
+    # Check permissions
+    if entry['status'] == 'pending':
+        if entry['created_by'] != session['user']['id'] and session['user']['role'] not in ['SK_Chairman', 'super_admin']:
+            return jsonify({'success': False, 'error': 'You can only edit your own pending entries'})
+    
+    # Get form data
+    amount = request.form.get('amount', '0').strip()
+    description = request.form.get('description', '').strip()
+    entry_date = request.form.get('entry_date', '') or datetime.now().date()
+    project_id = request.form.get('project_id') or None
+    
+    try:
+        amount = Decimal(amount)
+    except:
+        return jsonify({'success': False, 'error': 'Invalid amount'})
+    
+    # Handle evidence file
+    evidence_filename = entry['evidence_filename']
+    evidence_file = request.files.get('evidence')
+    if evidence_file and evidence_file.filename:
+        if allowed_file(evidence_file.filename):
+            safe = secure_filename(evidence_file.filename)
+            dest = os.path.join(BUDGET_EVIDENCE_UPLOADS, safe)
+            evidence_file.save(dest)
+            evidence_filename = f'uploads/budget_evidence/{safe}'
+        else:
+            return jsonify({'success': False, 'error': 'File type not allowed'})
+    
+    # Update the entry
+    cur.execute('''
+        UPDATE budget_entries 
+        SET amount=%s, description=%s, entry_date=%s, evidence_filename=%s, 
+            project_id=%s, updated_at=NOW()
+        WHERE id=%s
+    ''', (amount, description, entry_date, evidence_filename, project_id, entry_id))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, entry_id, activity_type, description, performed_by)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (
+        budget_id, entry_id, 'entry_edited',
+        f'Budget entry edited: {description}',
+        session['user']['id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    return jsonify({'success': True, 'message': 'Budget entry updated successfully!'})
+
+
+@app.route('/budgets/<int:budget_id>/entries/<int:entry_id>/delete')
+@login_required()
+def delete_budget_entry(budget_id, entry_id):
+    cur = mysql.connection.cursor()
+    
+    # Get entry details
+    cur.execute('SELECT * FROM budget_entries WHERE id=%s AND budget_id=%s', (entry_id, budget_id))
+    entry = cur.fetchone()
+    
+    if not entry:
+        flash('Entry not found', 'danger')
+        cur.close()
+        return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Check permissions: only creator, SK_Chairman, or super_admin can delete
+    if entry['status'] != 'pending':
+        # For approved entries, only SK_Chairman or super_admin can delete
+        if session['user']['role'] not in ['SK_Chairman', 'super_admin']:
+            flash('Only SK Chairman or Super Admin can delete approved entries', 'danger')
+            cur.close()
+            return redirect(url_for('budget_details', budget_id=budget_id))
+    else:
+        # For pending entries, creator or admin can delete
+        if entry['created_by'] != session['user']['id'] and session['user']['role'] not in ['SK_Chairman', 'super_admin']:
+            flash('You can only delete your own pending entries', 'danger')
+            cur.close()
+            return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Delete the entry
+    cur.execute('DELETE FROM budget_entries WHERE id=%s', (entry_id,))
+    
+    # Log activity
+    cur.execute('''
+        INSERT INTO budget_activity_history 
+        (budget_id, activity_type, description, performed_by)
+        VALUES (%s, %s, %s, %s)
+    ''', (
+        budget_id, 'entry_deleted',
+        f'Budget entry deleted: {entry["description"]}',
+        session['user']['id']
+    ))
+    
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Budget entry deleted successfully!', 'info')
+    return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
+
+
+@app.route('/monthly_financial_reports/new', methods=['GET', 'POST'])
+@login_required()
+def new_monthly_financial_report():
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
+    if request.method == 'POST':
+        year = request.form.get('year', '').strip()
+        month = request.form.get('month', '').strip()
+        notes = request.form.get('notes', '').strip()
+        file = request.files.get('file')
+        
+        if not year or not month:
+            flash('Please select both year and month', 'danger')
+            return redirect(url_for('new_monthly_financial_report'))
+        
+        month_year = f"{year}-{month:0>2}"  # Format as YYYY-MM
+        
+        # Check if report already exists for this month
+        cur = mysql.connection.cursor()
+        cur.execute('SELECT id FROM monthly_financial_reports WHERE month_year=%s', (month_year,))
+        existing_report = cur.fetchone()
+        
+        if existing_report:
+            flash(f'A monthly financial report for {month_year} already exists!', 'warning')
+            cur.close()
+            return redirect(url_for('new_monthly_financial_report'))
+        
+        # Calculate financial data
+        # Get total income for the month (approved increases)
+        cur.execute('''
+            SELECT COALESCE(SUM(amount), 0) as total
+            FROM budget_entries 
+            WHERE entry_type='increase' 
+            AND status='approved'
+            AND YEAR(entry_date) = %s
+            AND MONTH(entry_date) = %s
+        ''', (year, month))
+        total_income = cur.fetchone()['total']
+        
+        # Get total expenses for the month (approved decreases)
+        cur.execute('''
+            SELECT COALESCE(SUM(amount), 0) as total
+            FROM budget_entries 
+            WHERE entry_type='decrease' 
+            AND status='approved'
+            AND YEAR(entry_date) = %s
+            AND MONTH(entry_date) = %s
+        ''', (year, month))
+        total_expenses = cur.fetchone()['total']
+        
+        # Get opening balance (balance at end of previous month)
+        # Calculate based on all budgets and entries before this month
+        first_day_of_month = f"{year}-{month:0>2}-01"
+        
+        # Sum of all initial budget amounts
+        cur.execute('SELECT COALESCE(SUM(total_amount), 0) as initial_total FROM budgets')
+        initial_total = cur.fetchone()['initial_total']
+        
+        # Calculate net changes up to the start of the report month
+        cur.execute('''
+            SELECT 
+                COALESCE(SUM(CASE WHEN entry_type='increase' AND status='approved' AND entry_date < %s THEN amount ELSE 0 END), 0) as total_increases,
+                COALESCE(SUM(CASE WHEN entry_type='decrease' AND status='approved' AND entry_date < %s THEN amount ELSE 0 END), 0) as total_decreases
+            FROM budget_entries
+        ''', (first_day_of_month, first_day_of_month))
+        changes = cur.fetchone()
+        
+        opening_balance = initial_total + changes['total_increases'] - changes['total_decreases']
+        closing_balance = opening_balance + total_income - total_expenses
+        
+        # Handle file upload
+        filename_db = None
+        if file and file.filename:
+            if allowed_file(file.filename):
+                safe = secure_filename(file.filename)
+                dest = os.path.join(REPORT_UPLOADS, safe)
+                file.save(dest)
+                filename_db = f'uploads/reports/{safe}'
+            else:
+                flash('File type not allowed', 'danger')
+                cur.close()
+                return redirect(url_for('new_monthly_financial_report'))
+        
+        # Create the monthly financial report
+        cur.execute('''
+            INSERT INTO monthly_financial_reports 
+            (month_year, total_income, total_expenses, opening_balance, closing_balance, notes, filename, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (month_year, total_income, total_expenses, opening_balance, closing_balance, notes, filename_db, session['user']['id']))
+        
+        report_id = cur.lastrowid
+        
+        # Also create a regular report entry for consistency
+        cur.execute('''
+            INSERT INTO reports 
+            (type, filename, uploaded_at, reported_for, notes, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (
+            'Monthly Financial Report', filename_db, datetime.utcnow(),
+            f'Financial Report for {month_year}', notes, session['user']['id']
+        ))
+        
+        mysql.connection.commit()
+        cur.close()
+        
+        flash(f'Monthly financial report for {month_year} created successfully!', 'success')
+        return redirect(url_for('reports') + '?sidebar=open')
+    
+    # Get available years and months with budget activity
+    cur = mysql.connection.cursor()
+    
+    # Get distinct years from approved budget entries
+    cur.execute('''
+        SELECT DISTINCT YEAR(entry_date) as year
+        FROM budget_entries 
+        WHERE status='approved' 
+        AND entry_date IS NOT NULL
+        ORDER BY year DESC
+    ''')
+    years_data = cur.fetchall()
+    years = [str(year['year']) for year in years_data if year['year']]
+    
+    # Get distinct months from approved budget entries
+    cur.execute('''
+        SELECT DISTINCT MONTH(entry_date) as month
+        FROM budget_entries 
+        WHERE status='approved' 
+        AND entry_date IS NOT NULL
+        ORDER BY month ASC
+    ''')
+    months_data = cur.fetchall()
+    months = [str(month['month']) for month in months_data if month['month']]
+    
+    # Get months that already have reports to disable them
+    cur.execute('SELECT DISTINCT month_year FROM monthly_financial_reports ORDER BY month_year DESC')
+    existing_reports = [report['month_year'] for report in cur.fetchall()]
+    
+    cur.close()
+    
+    # Month names for display
+    month_names = {
+        '1': 'January', '2': 'February', '3': 'March', '4': 'April',
+        '5': 'May', '6': 'June', '7': 'July', '8': 'August',
+        '9': 'September', '10': 'October', '11': 'November', '12': 'December'
+    }
+    
+    return render_template('new_monthly_financial_report.html', 
+                         years=years,
+                         months=months,
+                         month_names=month_names,
+                         existing_reports=existing_reports,
+                         sidebar_open=sidebar_open)
+    
+    # Get available months with budget activity
+    cur = mysql.connection.cursor()
+    cur.execute('''
+        SELECT DISTINCT DATE_FORMAT(entry_date, '%%Y-%%m') as month_year
+        FROM budget_entries 
+        WHERE status='approved'
+        ORDER BY month_year DESC
+    ''')
+    months = cur.fetchall()
+    
+    cur.close()
+    
+    return render_template('new_monthly_financial_report.html', 
+                         months=months,
+                         sidebar_open=sidebar_open) 
+
+
+@app.route('/monthly_financial_reports')
+@login_required()
+def monthly_financial_reports():
+    cur = mysql.connection.cursor()
+    
+    cur.execute('''
+        SELECT mfr.*, u.fullname as creator_name
+        FROM monthly_financial_reports mfr
+        LEFT JOIN users u ON mfr.created_by = u.id
+        ORDER BY mfr.month_year DESC
+    ''')
+    reports = cur.fetchall()
+    
+    cur.close()
+    
+    sidebar_open = request.args.get('sidebar') == 'open'
+    return render_template('monthly_financial_reports.html', 
+                         reports=reports,
+                         sidebar_open=sidebar_open)
+
+
 # --- FIX FILE VIEW ---
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     """Serve files correctly from static/uploads."""
     safe_path = os.path.join(app.static_folder, 'uploads')
     return send_from_directory(safe_path, filename, as_attachment=False)
+
+
+# --- Serve budget evidence files ---
+@app.route('/uploads/budget_evidence/<filename>')
+def serve_budget_evidence(filename):
+    """Serve budget evidence files from the correct directory"""
+    return send_from_directory(BUDGET_EVIDENCE_UPLOADS, filename, as_attachment=False)
 
 
 # --- Run ---
