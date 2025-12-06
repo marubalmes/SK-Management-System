@@ -4,154 +4,305 @@
 <div class="db-main">
     <div class="db-topbar">
         <div class="tb-left">
-            <h1 class="tb-title">Dashboard</h1>
+            <h1 class="tb-title">Welcome!</h1>
         </div>
         <div class="tb-right">
-            <div class="user-welcome">
-                <span>Welcome, {{ session.user.fullname }}</span>
+            <!-- FIXED: Changed from user-welcome to user-info to match base.html structure -->
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i data-lucide="user" style="width:20px;height:20px;"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ session.user.fullname }}</span>
+
+                </div>
+                <div class="user-actions">
+                   
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Overview -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i data-lucide="folder" style="width:24px;height:24px;"></i>
+    <!-- Enhanced Statistics Grid -->
+    <div class="stats-grid-enhanced">
+        <div class="stat-card-enhanced">
+            <div class="stat-header">
+                <div class="stat-icon-enhanced project-icon">
+                    <i data-lucide="folder-kanban" style="width:28px;height:28px;"></i>
+                </div>
+                <div class="stat-title-section">
+                    <h3 class="stat-main-title">Total Projects</h3>
+                    <div class="stat-badge">{{ projects_total or 0 }}</div>
+                </div>
             </div>
-            <div class="stat-content">
-                <h3>{{ projects_total or 0 }}</h3>
-                <p>Total Projects</p>
-                <div class="stat-trend positive">
-                    <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
-                    <span>{{ projects_approved or 0 }} approved</span>
+            <div class="stat-body">
+                <div class="stat-progress-grid">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="progress-dot ongoing-dot"></span>
+                            <span>Ongoing</span>
+                        </div>
+                        <div class="progress-value">{{ projects_ongoing or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="progress-dot completed-dot"></span>
+                            <span>Completed</span>
+                        </div>
+                        <div class="progress-value">{{ projects_completed or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="progress-dot planned-dot"></span>
+                            <span>Planned</span>
+                        </div>
+                        <div class="progress-value">{{ projects_planned or 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-action">
+                    <a href="{{ url_for('projects') }}" class="stat-link">
+                        View Details
+                        <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i data-lucide="file-text" style="width:24px;height:24px;"></i>
+        <div class="stat-card-enhanced">
+            <div class="stat-header">
+                <div class="stat-icon-enhanced report-icon">
+                    <i data-lucide="file-check" style="width:28px;height:28px;"></i>
+                </div>
+                <div class="stat-title-section">
+                    <h3 class="stat-main-title">Total Reports</h3>
+                    <div class="stat-badge">{{ reports_total or 0 }}</div>
+                </div>
             </div>
-            <div class="stat-content">
-                <h3>{{ reports_total or 0 }}</h3>
-                <p>Total Reports</p>
-                <div class="stat-trend">
-                    <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i>
-                    <span>{{ reports_this_month or 0 }} this month</span>
+            <div class="stat-body">
+                <div class="stat-progress-grid">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="calendar" style="width:16px;height:16px; color:#ff9800;"></i>
+                            <span>This Month</span>
+                        </div>
+                        <div class="progress-value">{{ reports_this_month or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="check-circle" style="width:16px;height:16px; color:#28a745;"></i>
+                            <span>Approved</span>
+                        </div>
+                        <div class="progress-value">{{ reports_approved or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="trending-up" style="width:16px;height:16px; color:#17a2b8;"></i>
+                            <span>With Files</span>
+                        </div>
+                        <div class="progress-value">{{ reports_with_files or 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-action">
+                    <a href="{{ url_for('reports') }}" class="stat-link">
+                        View Details
+                        <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i data-lucide="users" style="width:24px;height:24px;"></i>
+        <div class="stat-card-enhanced">
+            <div class="stat-header">
+                <div class="stat-icon-enhanced logbook-icon">
+                    <i data-lucide="users" style="width:28px;height:28px;"></i>
+                </div>
+                <div class="stat-title-section">
+                    <h3 class="stat-main-title">Logbook Entries</h3>
+                    <div class="stat-badge">{{ logbook_total or 0 }}</div>
+                </div>
             </div>
-            <div class="stat-content">
-                <h3>{{ logbook_total or 0 }}</h3>
-                <p>Logbook Entries</p>
-                <div class="stat-trend positive">
-                    <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
-                    <span>{{ logbook_today or 0 }} today</span>
+            <div class="stat-body">
+                <div class="stat-progress-grid">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="calendar" style="width:16px;height:16px; color:#ff9800;"></i>
+                            <span>Today</span>
+                        </div>
+                        <div class="progress-value">{{ logbook_today or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="activity" style="width:16px;height:16px; color:#28a745;"></i>
+                            <span>This Month</span>
+                        </div>
+                        <div class="progress-value">{{ logbook_this_month or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="image" style="width:16px;height:16px; color:#17a2b8;"></i>
+                            <span>With Evidence</span>
+                        </div>
+                        <div class="progress-value">{{ logbook_with_evidence or 0 }}</div>
+                    </div>
+                </div>
+                <div class="stat-action">
+                    <a href="{{ url_for('logbook') }}" class="stat-link">
+                        View Details
+                        <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i data-lucide="user-check" style="width:24px;height:24px;"></i>
+        <div class="stat-card-enhanced">
+            <div class="stat-header">
+                <div class="stat-icon-enhanced budget-icon">
+                    <i data-lucide="credit-card" style="width:28px;height:28px;"></i>
+                </div>
+                <div class="stat-title-section">
+                    <h3 class="stat-main-title">Budget Balance</h3>
+                    <div class="stat-badge-currency">₱{{ "%.2f"|format(total_budget_balance|default(0)|float) }}</div>
+                </div>
             </div>
-            <div class="stat-content">
-                <h3>{{ users_total or 0 }}</h3>
-                <p>Active Users</p>
-                <div class="stat-trend">
+            <div class="stat-body">
+                <div class="stat-progress-grid">
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="alert-circle" style="width:16px;height:16px; color:#dc3545;"></i>
+                            <span>Pending Approvals</span>
+                        </div>
+                        <div class="progress-value">{{ pending_approvals or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="database" style="width:16px;height:16px; color:#28a745;"></i>
+                            <span>Total Budgets</span>
+                        </div>
+                        <div class="progress-value">{{ budgets_total or 0 }}</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <i data-lucide="pie-chart" style="width:16px;height:16px; color:#17a2b8;"></i>
+                            <span>Utilization</span>
+                        </div>
+                        <div class="progress-value">{{ budget_utilization_percentage|default(0)|int }}%</div>
+                    </div>
+                </div>
+                <div class="stat-action">
+                    <a href="{{ url_for('budgets') }}" class="stat-link">
+                        View Details
+                        <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginated Charts Section - Updated with actual data -->
+    <div class="paginated-charts-section">
+        <div class="charts-header">
+            <h3>Analytics & Reports</h3>
+            <div class="charts-pagination" id="chartsPagination">
+                <button class="chart-nav-btn active" data-chart="projects">
+                    <i data-lucide="folder" style="width:16px;height:16px;"></i>
+                    <span>Projects</span>
+                </button>
+                <button class="chart-nav-btn" data-chart="reports">
+                    <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                    <span>Reports</span>
+                </button>
+                <button class="chart-nav-btn" data-chart="logbook">
                     <i data-lucide="users" style="width:16px;height:16px;"></i>
-                    <span>{{ roles_count.SK_Chairman or 0 }} SK Chairman</span>
-                </div>
+                    <span>Logbook</span>
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Main Dashboard Grid -->
-    <div class="db-grid">
-        <!-- Projects Analytics -->
-        <div class="card chart-card">
-            <div class="card-header">
-                <h3>Projects Overview</h3>
-                <div class="card-actions">
+        <div class="charts-container">
+            <!-- Projects Chart (Visible by default) -->
+            <div class="chart-card active" id="projectsChart">
+                <div class="chart-card-header">
+                    <h4>Projects Overview</h4>
                     <a href="{{ url_for('projects') }}" class="btn-sm">View All</a>
                 </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="projectsStatusChart"></canvas>
-            </div>
-            <div class="chart-stats">
-                <div class="chart-stat">
-                    <span class="stat-value">{{ projects_ongoing or 0 }}</span>
-                    <span class="stat-label">Ongoing</span>
+                <div class="chart-wrapper">
+                    <canvas id="projectsStatusChart"></canvas>
                 </div>
-                <div class="chart-stat">
-                    <span class="stat-value">{{ projects_completed or 0 }}</span>
-                    <span class="stat-label">Completed</span>
-                </div>
-                <div class="chart-stat">
-                    <span class="stat-value">{{ projects_planned or 0 }}</span>
-                    <span class="stat-label">Planned</span>
+                <div class="chart-summary">
+                    <div class="summary-item">
+                        <span class="summary-value">{{ projects_ongoing or 0 }}</span>
+                        <span class="summary-label">Ongoing</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ projects_completed or 0 }}</span>
+                        <span class="summary-label">Completed</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ projects_planned or 0 }}</span>
+                        <span class="summary-label">Planned</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Reports Analytics -->
-        <div class="card chart-card">
-            <div class="card-header">
-                <h3>Reports by Category</h3>
-                <div class="card-actions">
+            <!-- Reports Chart -->
+            <div class="chart-card" id="reportsChart">
+                <div class="chart-card-header">
+                    <h4>Reports Overview</h4>
                     <a href="{{ url_for('reports') }}" class="btn-sm">View All</a>
                 </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="reportsCategoryChart"></canvas>
-            </div>
-        </div>
-
-        <!-- User Contributions -->
-        <!-- User Contributions -->
-        <div class="card chart-card">
-            <div class="card-header">
-                <h3>User Contributions</h3>
-                <div class="card-actions">
-                    {% if session.user.role == 'super_admin' %}
-                        <a href="{{ url_for('user_management') }}" class="btn-sm">Manage Users</a>
-                    {% else %}
-                        <span class="btn-sm disabled">Manage Users</span>
-                    {% endif %}
+                <div class="chart-wrapper">
+                    <canvas id="reportsOverviewChart"></canvas>
+                </div>
+                <div class="chart-summary">
+                    <div class="summary-item">
+                        <span class="summary-value">{{ reports_total or 0 }}</span>
+                        <span class="summary-label">Total</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ reports_this_month or 0 }}</span>
+                        <span class="summary-label">This Month</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ reports_with_files or 0 }}</span>
+                        <span class="summary-label">With Files</span>
+                    </div>
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="userContributionsChart"></canvas>
-            </div>
-        </div>
 
-        <!-- Logbook Activity -->
-        <div class="card chart-card">
-            <div class="card-header">
-                <h3>Logbook Activity</h3>
-                <div class="card-actions">
-                    <a href="{{ url_for('logbook') }}" class="btn-sm">View Entries</a>
+            <!-- Logbook Chart -->
+            <div class="chart-card" id="logbookChart">
+                <div class="chart-card-header">
+                    <h4>Logbook Activity</h4>
+                    <a href="{{ url_for('logbook') }}" class="btn-sm">View All</a>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="logbookActivityChart"></canvas>
+                </div>
+                <div class="chart-summary">
+                    <div class="summary-item">
+                        <span class="summary-value">{{ logbook_total or 0 }}</span>
+                        <span class="summary-label">Total Entries</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ logbook_today or 0 }}</span>
+                        <span class="summary-label">Today</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">{{ logbook_with_evidence or 0 }}</span>
+                        <span class="summary-label">With Evidence</span>
+                    </div>
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="logbookActivityChart"></canvas>
-            </div>
         </div>
+    </div>
 
+    <!-- Bottom Grid -->
+    <div class="bottom-grid">
         <!-- Recent Activity -->
         <div class="card activity-card">
             <div class="card-header">
                 <h3>Recent Activity</h3>
-                <div class="card-actions">
-                    <span class="badge">{{ recent_activities|length }} activities</span>
-                </div>
+                <span class="badge">{{ recent_activities|length }}</span>
             </div>
             <div class="activity-list">
                 {% for activity in recent_activities %}
@@ -161,8 +312,12 @@
                         <i data-lucide="folder" style="width:16px;height:16px;"></i>
                         {% elif activity.type == 'report' %}
                         <i data-lucide="file-text" style="width:16px;height:16px;"></i>
-                        {% else %}
+                        {% elif activity.type == 'logbook' %}
                         <i data-lucide="users" style="width:16px;height:16px;"></i>
+                        {% elif activity.type == 'budget' %}
+                        <i data-lucide="dollar-sign" style="width:16px;height:16px;"></i>
+                        {% else %}
+                        <i data-lucide="activity" style="width:16px;height:16px;"></i>
                         {% endif %}
                     </div>
                     <div class="activity-content">
@@ -212,6 +367,7 @@
                         <span class="qa-desc">Add visitor entry</span>
                     </div>
                 </a>
+                {% if session.user.role == 'super_admin' %}
                 <a href="{{ url_for('user_management') }}" class="qa-item">
                     <div class="qa-icon">
                         <i data-lucide="settings" style="width:20px;height:20px;"></i>
@@ -221,6 +377,40 @@
                         <span class="qa-desc">Manage users</span>
                     </div>
                 </a>
+                {% endif %}
+                {% if session.user.role in ['SK_Chairman', 'Treasurer', 'BMO', 'super_admin'] %}
+                <a href="{{ url_for('budgets') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="credit-card" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">Budget Management</span>
+                        <span class="qa-desc">View budgets</span>
+                    </div>
+                </a>
+                {% endif %}
+                {% if session.user.role in ['Treasurer', 'BMO', 'super_admin'] %}
+                <a href="{{ url_for('new_budget') }}" class="qa-item">
+                    <div class="qa-icon">
+                        <i data-lucide="plus-circle" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">New Budget</span>
+                        <span class="qa-desc">Create new budget</span>
+                    </div>
+                </a>
+                {% endif %}
+                {% if session.user.role == 'SK_Chairman' and pending_approvals > 0 %}
+                <a href="{{ url_for('budget_approvals') }}" class="qa-item highlight">
+                    <div class="qa-icon">
+                        <i data-lucide="check-circle" style="width:20px;height:20px;"></i>
+                    </div>
+                    <div class="qa-content">
+                        <span class="qa-title">Pending Approvals</span>
+                        <span class="qa-desc">{{ pending_approvals }} waiting</span>
+                    </div>
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -230,23 +420,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* Base Layout */
 .db-main {
-    padding: 30px;
+    padding: 25px;
     min-height: 100vh;
     max-width: 100%;
     margin: 0 auto;
 }
+
+/* Top Bar */
 .db-topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    padding: 25px 0;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
     border-bottom: 1px solid #e9ecef;
 }
 
 .tb-title {
-    font-size: 2.5rem;
+    font-size: 2.3rem;
     font-weight: 800;
     color: #2c3e50;
     margin: 0;
@@ -254,119 +447,397 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
 }
 
-.tb-subtitle {
-    color: #7f8c8d;
-    margin: 10px 0 0 0;
-    font-size: 1.1rem;
-    font-weight: 400;
-}
-
-.user-welcome {
-    text-align: right;
-    padding: 15px 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-left: 4px solid #ff9800;
-}
-
-.user-welcome span {
-    font-weight: 700;
-    color: #2c3e50;
-    display: block;
-    font-size: 1.2rem;
-}
-
-.user-welcome small {
-    color: #ff9800;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* Statistics Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    margin-bottom: 40px;
-}
-
-.stat-card {
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    border: 1px solid rgba(0,0,0,0.05);
+/* FIXED: Update user-info styles to work properly in dashboard */
+.tb-right .user-info {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-left: 4px solid #ff9800;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
 }
 
-.stat-card::before {
+.tb-right .user-info:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+}
+
+.tb-right .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.tb-right .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tb-right .user-name {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.tb-right .user-role {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.tb-right .user-actions .logout-link {
+    color: #dc3545;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tb-right .user-actions .logout-link:hover {
+    color: white;
+    background: #dc3545;
+    transform: translateY(-1px);
+}
+
+/* Enhanced Statistics Grid */
+.stats-grid-enhanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card-enhanced {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.stat-card-enhanced:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+    transform: translateY(-4px);
+}
+
+.stat-card-enhanced::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
 }
 
-.stat-card:hover {
-    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-    transform: translateY(-5px);
+.stat-card-enhanced:nth-child(1)::before { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+.stat-card-enhanced:nth-child(2)::before { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+.stat-card-enhanced:nth-child(3)::before { background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); }
+.stat-card-enhanced:nth-child(4)::before { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); }
+
+.stat-header {
+    padding: 20px 20px 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.9) 100%);
 }
 
-.stat-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+.stat-icon-enhanced {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 4px 12px rgba(255,152,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    flex-shrink: 0;
 }
 
-.stat-content h3 {
-    font-size: 2.5rem;
-    font-weight: 800;
+.project-icon { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+.report-icon { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+.logbook-icon { background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); }
+.budget-icon { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); }
+
+.stat-title-section {
+    flex: 1;
+}
+
+.stat-main-title {
+    font-size: 1.1rem;
+    font-weight: 700;
     color: #2c3e50;
     margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.stat-badge {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2c3e50;
     line-height: 1;
 }
 
-.stat-content p {
-    color: #7f8c8d;
-    margin: 0 0 12px 0;
-    font-size: 1rem;
+.stat-badge-currency {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.stat-body {
+    padding: 15px 20px 20px;
+}
+
+.stat-progress-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.progress-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.progress-item:last-child {
+    border-bottom: none;
+}
+
+.progress-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #6c757d;
     font-weight: 500;
 }
 
-.stat-trend {
+.progress-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.ongoing-dot { background: #ff9800; }
+.completed-dot { background: #28a745; }
+.planned-dot { background: #17a2b8; }
+
+.progress-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.stat-action {
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.stat-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.stat-link:hover {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,152,0,0.3);
+}
+
+/* Paginated Charts Section */
+.paginated-charts-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.charts-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.charts-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.charts-pagination {
+    display: flex;
+    gap: 10px;
+}
+
+.chart-nav-btn {
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
     font-size: 0.9rem;
     font-weight: 600;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.stat-trend.positive {
-    color: #27ae60;
+.chart-nav-btn:hover {
+    background: #f8f9fa;
+    border-color: #ff9800;
+    color: #2c3e50;
 }
 
-/* Main Grid Layout */
-.db-grid {
+.chart-nav-btn.active {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    border-color: #ff9800;
+    color: white;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
+}
+
+.charts-container {
+    padding: 20px;
+    position: relative;
+    min-height: 380px;
+}
+
+.chart-card {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.chart-card.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-card-header h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.chart-card-header .btn-sm {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(255,152,0,0.3);
+}
+
+.chart-card-header .btn-sm:hover {
+    background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(255,152,0,0.4);
+}
+
+.chart-wrapper {
+    height: 250px;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.chart-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.summary-item {
+    text-align: center;
+    flex: 1;
+    padding: 0 10px;
+}
+
+.summary-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    line-height: 1;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Bottom Grid */
+.bottom-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    gap: 30px;
-    max-width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 25px;
 }
 
 .card {
@@ -374,21 +845,11 @@
     border-radius: 16px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     border: 1px solid rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
     overflow: hidden;
 }
 
-.card:hover {
-    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-    transform: translateY(-3px);
-}
-
-.chart-card {
-    padding: 0;
-}
-
 .card-header {
-    padding: 25px 30px;
+    padding: 20px 25px;
     border-bottom: 1px solid #e9ecef;
     display: flex;
     justify-content: space-between;
@@ -399,69 +860,18 @@
 .card-header h3 {
     margin: 0;
     color: #2c3e50;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 700;
-}
-
-.card-actions .btn-sm {
-    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
-}
-
-.card-actions .btn-sm:hover {
-    background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255,152,0,0.4);
-}
-
-.chart-container {
-    padding: 25px;
-    height: 280px;
-    position: relative;
-}
-
-.chart-stats {
-    display: flex;
-    justify-content: space-around;
-    padding: 20px 25px;
-    border-top: 1px solid #e9ecef;
-    background: #f8f9fa;
-}
-
-.chart-stat {
-    text-align: center;
-    padding: 0 15px;
-}
-
-.stat-value {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #2c3e50;
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    font-weight: 600;
 }
 
 /* Activity Card */
 .activity-card {
-    grid-column: span 1;
+    height: 100%;
 }
 
 .activity-list {
     padding: 0;
-    max-height: 450px;
+    max-height: 320px;
     overflow-y: auto;
 }
 
@@ -469,7 +879,7 @@
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    padding: 20px 30px;
+    padding: 15px 20px;
     border-bottom: 1px solid #f0f0f0;
     transition: all 0.2s ease;
     position: relative;
@@ -504,19 +914,19 @@
 .activity-text {
     margin: 0 0 6px 0;
     color: #2c3e50;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.5;
     font-weight: 500;
 }
 
 .activity-time {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #ff9800;
     font-weight: 600;
 }
 
 .activity-empty {
-    padding: 60px 20px;
+    padding: 40px 20px;
     text-align: center;
     color: #bdc3c7;
 }
@@ -527,18 +937,18 @@
 }
 
 .activity-empty p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin: 0;
 }
 
 /* Quick Actions */
 .quick-actions-card {
-    grid-column: span 1;
+    height: 100%;
 }
 
 .qa-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0;
     background: #f8f9fa;
     border-radius: 0 0 16px 16px;
@@ -547,7 +957,7 @@
 
 .qa-item {
     background: white;
-    padding: 25px;
+    padding: 20px;
     text-decoration: none;
     color: inherit;
     transition: all 0.3s ease;
@@ -581,10 +991,19 @@
     left: 0;
 }
 
+.qa-item.highlight {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.qa-item.highlight:hover {
+    background: #ffeaa7;
+}
+
 .qa-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
     background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
     display: flex;
     align-items: center;
@@ -605,11 +1024,11 @@
     font-weight: 700;
     color: #2c3e50;
     margin-bottom: 4px;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .qa-desc {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #7f8c8d;
     font-weight: 500;
 }
@@ -625,54 +1044,44 @@
     box-shadow: 0 2px 8px rgba(255,152,0,0.3);
 }
 
-/* Disabled button */
-.btn-sm.disabled {
-    background: #bdc3c7 !important;
-    color: #7f8c8d !important;
-    cursor: not-allowed;
-    box-shadow: none !important;
-    transform: none !important;
-}
-
 /* Responsive Design */
-@media (max-width: 1400px) {
-    .db-grid {
-        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-    }
-}
-
 @media (max-width: 1200px) {
-    .db-grid {
+    .bottom-grid {
         grid-template-columns: 1fr;
     }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 992px) {
+    .charts-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
     }
     
-    .db-main {
-        padding: 20px;
+    .charts-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
 
 @media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
+    .db-main {
+        padding: 15px;
     }
     
     .db-topbar {
         flex-direction: column;
         align-items: flex-start;
-        gap: 20px;
-        text-align: center;
+        gap: 15px;
     }
     
-    .user-welcome {
-        text-align: center;
-        width: 100%;
+    .tb-right .user-info {
+        align-self: stretch;
+        justify-content: center;
+        padding: 12px;
     }
     
-    .qa-grid {
+    .stats-grid-enhanced {
         grid-template-columns: 1fr;
     }
     
@@ -680,45 +1089,91 @@
         font-size: 2rem;
     }
     
-    .stat-card {
-        padding: 20px;
-    }
-    
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .stat-content h3 {
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .db-main {
+    .stat-header {
         padding: 15px;
     }
     
+    .stat-icon-enhanced {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .stat-badge {
+        font-size: 1.8rem;
+    }
+    
+    .stat-badge-currency {
+        font-size: 1.6rem;
+    }
+    
+    .chart-wrapper {
+        height: 220px;
+    }
+    
+    .summary-value {
+        font-size: 1.4rem;
+    }
+    
+    .qa-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-item {
+        padding: 6px 0;
+    }
+    
+    .progress-label {
+        font-size: 0.85rem;
+    }
+    
+    .progress-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .charts-pagination {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .chart-nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .card-header {
-        padding: 20px;
+        padding: 15px;
         flex-direction: column;
         gap: 10px;
         text-align: center;
     }
     
-    .chart-container {
-        padding: 15px;
-        height: 250px;
-    }
-    
     .qa-item {
-        padding: 20px;
+        padding: 15px;
         flex-direction: column;
         text-align: center;
     }
+    
+    .chart-wrapper {
+        height: 200px;
+    }
+    
+    .tb-right .user-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .tb-right .user-details {
+        align-items: center;
+    }
 }
 </style>
-
 
 <script>
 // Initialize Lucide icons
@@ -729,12 +1184,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize Charts
     initializeCharts();
+    
+    // Initialize chart pagination
+    initializeChartPagination();
 });
+
+function initializeChartPagination() {
+    const chartBtns = document.querySelectorAll('.chart-nav-btn');
+    const chartCards = document.querySelectorAll('.chart-card');
+    
+    chartBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            chartBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Hide all charts
+            chartCards.forEach(card => card.classList.remove('active'));
+            
+            // Show selected chart
+            const chartType = this.getAttribute('data-chart');
+            const selectedChart = document.getElementById(chartType + 'Chart');
+            if (selectedChart) {
+                selectedChart.classList.add('active');
+            }
+        });
+    });
+}
 
 function initializeCharts() {
     // Projects Status Chart (Doughnut)
     const projectsCtx = document.getElementById('projectsStatusChart').getContext('2d');
-    new Chart(projectsCtx, {
+    window.projectsChart = new Chart(projectsCtx, {
         type: 'doughnut',
         data: {
             labels: ['Ongoing', 'Completed', 'Planned'],
@@ -760,26 +1242,33 @@ function initializeCharts() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 20,
-                        usePointStyle: true
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
                     }
                 }
             },
-            cutout: '70%'
+            cutout: '65%'
         }
     });
 
-    // Reports Category Chart (Bar)
-    const reportsCtx = document.getElementById('reportsCategoryChart').getContext('2d');
-    new Chart(reportsCtx, {
+    // Reports Overview Chart (Bar)
+    const reportsCtx = document.getElementById('reportsOverviewChart').getContext('2d');
+    window.reportsChart = new Chart(reportsCtx, {
         type: 'bar',
         data: {
-            labels: {{ report_categories|tojson|safe }},
+            labels: ['Total', 'This Month', 'With Files'],
             datasets: [{
                 label: 'Reports',
-                data: {{ report_counts|tojson|safe }},
-                backgroundColor: '#ff9800',
-                borderColor: '#f57c00',
+                data: [
+                    {{ reports_total or 0 }},
+                    {{ reports_this_month or 0 }},
+                    {{ reports_with_files or 0 }}
+                ],
+                backgroundColor: '#28a745',
+                borderColor: '#20c997',
                 borderWidth: 1,
                 borderRadius: 6
             }]
@@ -797,55 +1286,21 @@ function initializeCharts() {
                     beginAtZero: true,
                     grid: {
                         drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
                     }
                 },
                 x: {
                     grid: {
                         display: false
-                    }
-                }
-            }
-        }
-    });
-
-    // User Contributions Chart (Horizontal Bar)
-    const userCtx = document.getElementById('userContributionsChart').getContext('2d');
-    new Chart(userCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ user_roles|tojson|safe }},
-            datasets: [{
-                label: 'Contributions',
-                data: {{ user_contributions|tojson|safe }},
-                backgroundColor: [
-                    '#ff9800',
-                    '#f57c00',
-                    '#ffb74d',
-                    '#ffa726'
-                ],
-                borderWidth: 0,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        drawBorder: false
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
                     }
                 }
             }
@@ -854,18 +1309,27 @@ function initializeCharts() {
 
     // Logbook Activity Chart (Line)
     const logbookCtx = document.getElementById('logbookActivityChart').getContext('2d');
-    new Chart(logbookCtx, {
+    window.logbookChart = new Chart(logbookCtx, {
         type: 'line',
         data: {
-            labels: {{ logbook_dates|tojson|safe }},
+            labels: ['Total', 'Today', 'This Month', 'With Evidence'],
             datasets: [{
-                label: 'Entries',
-                data: {{ logbook_counts|tojson|safe }},
-                borderColor: '#ff9800',
-                backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                borderWidth: 2,
+                label: 'Logbook Activity',
+                data: [
+                    {{ logbook_total or 0 }},
+                    {{ logbook_today or 0 }},
+                    {{ logbook_this_month or 0 }},
+                    {{ logbook_with_evidence or 0 }}
+                ],
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                borderWidth: 3,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointBackgroundColor: '#17a2b8',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
             }]
         },
         options: {
@@ -881,11 +1345,21 @@ function initializeCharts() {
                     beginAtZero: true,
                     grid: {
                         drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
                     }
                 },
                 x: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
                     }
                 }
             }
@@ -893,4 +1367,4 @@ function initializeCharts() {
     });
 }
 </script>
-{% endblock %}
+{% endblock %}  

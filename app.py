@@ -81,13 +81,31 @@ def get_dashboard_stats():
 
 def get_user_stats(user_id):
     cur = mysql.connection.cursor()
+    
+    # Get user's projects count
     cur.execute("SELECT COUNT(*) AS total_projects FROM projects WHERE created_by=%s", (user_id,))
-    proj = cur.fetchone()['total_projects'] if cur.rowcount else 0
+    proj_result = cur.fetchone()
+    proj = proj_result['total_projects'] if proj_result and 'total_projects' in proj_result else 0
+    
+    # Get user's reports count
     cur.execute("SELECT COUNT(*) AS total_reports FROM reports WHERE created_by=%s", (user_id,))
-    rep = cur.fetchone()['total_reports'] if cur.rowcount else 0
+    rep_result = cur.fetchone()
+    rep = rep_result['total_reports'] if rep_result and 'total_reports' in rep_result else 0
+    
+    # Get user's logbook count - Check if column exists first
+    cur.execute("SHOW COLUMNS FROM logbook LIKE 'created_by'")
+    has_created_by = cur.fetchone() is not None
+    
+    if has_created_by:
+        cur.execute("SELECT COUNT(*) AS total_logbook FROM logbook WHERE created_by=%s", (user_id,))
+        log_result = cur.fetchone()
+        log = log_result['total_logbook'] if log_result and 'total_logbook' in log_result else 0
+    else:
+        # If column doesn't exist, return 0
+        log = 0
+    
     cur.close()
-    return proj, rep
-
+    return proj, rep, log
 
 # Helper function to get available reports for linking
 def get_available_reports(project_id):
@@ -139,21 +157,55 @@ def get_dashboard_analytics():
     cur.execute("SELECT COUNT(*) as count FROM reports WHERE MONTH(uploaded_at)=MONTH(CURRENT_DATE()) AND YEAR(uploaded_at)=YEAR(CURRENT_DATE())")
     reports_this_month = cur.fetchone()['count']
     
+    # NEW: Get reports with files
+    cur.execute("SELECT COUNT(*) as count FROM reports WHERE filename IS NOT NULL AND filename != ''")
+    reports_with_files = cur.fetchone()['count']
+    
+    # NEW: Get approved reports (from reports.html we see there's no approval column, so we'll use all reports or adjust)
+    # Since there's no 'approved' column in reports, we'll use projects_approved instead
+    reports_approved = projects_approved  # Using same value as projects approved
+    
     cur.execute("SELECT COUNT(*) as count FROM logbook")
     logbook_total = cur.fetchone()['count']
     
     cur.execute("SELECT COUNT(*) as count FROM logbook WHERE date=CURRENT_DATE()")
     logbook_today = cur.fetchone()['count']
     
+    # NEW: Get logbook entries this month
+    cur.execute("SELECT COUNT(*) as count FROM logbook WHERE MONTH(date)=MONTH(CURRENT_DATE()) AND YEAR(date)=YEAR(CURRENT_DATE())")
+    logbook_this_month = cur.fetchone()['count']
+    
+    # NEW: Get logbook entries with evidence
+    cur.execute("SELECT COUNT(*) as count FROM logbook WHERE evidence_files IS NOT NULL AND evidence_files != ''")
+    logbook_with_evidence = cur.fetchone()['count']
+    
+    # NEW: Get logbook entries for this week (last 7 days)
+    week_ago = (datetime.now() - timedelta(days=7)).date()
+    cur.execute("SELECT COUNT(*) as count FROM logbook WHERE date >= %s", (week_ago,))
+    logbook_this_week = cur.fetchone()['count']
+    
     cur.execute("SELECT COUNT(*) as count FROM users")
     users_total = cur.fetchone()['count']
     
-    # Get budget statistics
+    # Get budget statistics - UPDATED FOR BUDGET UTILIZATION
     cur.execute("SELECT COUNT(*) as count FROM budgets")
     budgets_total = cur.fetchone()['count']
     
     cur.execute("SELECT COALESCE(SUM(current_balance), 0) as total_balance FROM budgets")
-    total_budget_balance = cur.fetchone()['total_balance']
+    total_budget_balance = float(cur.fetchone()['total_balance'])
+    
+    cur.execute("SELECT COALESCE(SUM(total_amount), 0) as total_allocated FROM budgets")
+    total_budget_allocated = float(cur.fetchone()['total_allocated'])
+    
+    # Calculate budget utilization percentage
+    if total_budget_allocated > 0:
+        budget_used = total_budget_allocated - total_budget_balance
+        budget_utilization_percentage = (budget_used / total_budget_allocated) * 100
+        budget_remaining_percentage = 100 - budget_utilization_percentage
+    else:
+        budget_utilization_percentage = 0
+        budget_remaining_percentage = 0
+        budget_used = 0
     
     cur.execute("SELECT COUNT(*) as count FROM budget_entries WHERE status='pending'")
     pending_approvals = cur.fetchone()['count']
@@ -202,11 +254,20 @@ def get_dashboard_analytics():
         'projects_planned': projects_planned,
         'reports_total': reports_total,
         'reports_this_month': reports_this_month,
+        'reports_with_files': reports_with_files,
+        'reports_approved': reports_approved,
         'logbook_total': logbook_total,
         'logbook_today': logbook_today,
+        'logbook_this_month': logbook_this_month,
+        'logbook_with_evidence': logbook_with_evidence,
+        'logbook_this_week': logbook_this_week,
         'users_total': users_total,
         'budgets_total': budgets_total,
         'total_budget_balance': total_budget_balance,
+        'total_budget_allocated': total_budget_allocated,
+        'budget_used': budget_used,
+        'budget_utilization_percentage': budget_utilization_percentage,
+        'budget_remaining_percentage': budget_remaining_percentage,
         'pending_approvals': pending_approvals,
         'roles_count': roles_count,
         'report_categories': report_categories,
@@ -359,12 +420,16 @@ def logout():
 def dashboard():
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
     
     return render_template('dashboard_base.html',
                          recent_activities=recent_activities,
+                         user_projects=user_projects,
+                         user_reports=user_reports,
+                         user_logbook=user_logbook,
                          sidebar_open=sidebar_open,
                          **analytics)
 
@@ -376,7 +441,7 @@ def superadmin_dashboard():
     # FIXED: Use enhanced analytics that includes roles_count
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
-    user_projects, user_reports = get_user_stats(session['user']['id'])
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     cur = mysql.connection.cursor()
     cur.execute('SELECT * FROM users')
@@ -392,6 +457,7 @@ def superadmin_dashboard():
         recent_activities=recent_activities,
         user_projects=user_projects,
         user_reports=user_reports,
+        user_logbook=user_logbook,
         sidebar_open=sidebar_open,
         **analytics  # ✅ PASS ALL ANALYTICS DATA INCLUDING roles_count
     )
@@ -879,8 +945,8 @@ def logbook():
             evidence_db = ','.join(evidence_filenames) if evidence_filenames else None
 
             cur.execute(
-                'INSERT INTO logbook (first_name, middle_name, last_name, sitio, time_in, time_out, date, concern, evidence_files) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                (first, middle, last, sitio, time_in, time_out, date, concern, evidence_db)
+                'INSERT INTO logbook (first_name, middle_name, last_name, sitio, time_in, time_out, date, concern, evidence_files, created_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                (first, middle, last, sitio, time_in, time_out, date, concern, evidence_db, session['user']['id'])
             )
             mysql.connection.commit()
             flash('Logbook entry added successfully!', 'success')
@@ -1184,10 +1250,10 @@ def report_delete(rep_id):
 @app.route('/chairman')
 @login_required(role='SK_Chairman')
 def sk_chairman_dashboard():
-    # FIXED: Get analytics data including roles_count
+    # FIXED: Use enhanced analytics that includes roles_count
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
-    user_projects, user_reports = get_user_stats(session['user']['id'])
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
@@ -1196,6 +1262,7 @@ def sk_chairman_dashboard():
                          recent_activities=recent_activities,
                          user_projects=user_projects,
                          user_reports=user_reports,
+                         user_logbook=user_logbook,
                          sidebar_open=sidebar_open,
                          **analytics)
 
@@ -1203,10 +1270,10 @@ def sk_chairman_dashboard():
 @app.route('/secretary')
 @login_required(role='Secretary')
 def secretary_dashboard():
-    # FIXED: Get analytics data including roles_count
+    # FIXED: Use enhanced analytics that includes roles_count
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
-    user_projects, user_reports = get_user_stats(session['user']['id'])
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
@@ -1215,6 +1282,7 @@ def secretary_dashboard():
                          recent_activities=recent_activities,
                          user_projects=user_projects,
                          user_reports=user_reports,
+                         user_logbook=user_logbook,
                          sidebar_open=sidebar_open,
                          **analytics)
 
@@ -1222,10 +1290,10 @@ def secretary_dashboard():
 @app.route('/treasurer')
 @login_required(role='Treasurer')
 def treasurer_dashboard():
-    # FIXED: Get analytics data including roles_count
+    # FIXED: Use enhanced analytics that includes roles_count
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
-    user_projects, user_reports = get_user_stats(session['user']['id'])
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
@@ -1234,6 +1302,7 @@ def treasurer_dashboard():
                          recent_activities=recent_activities,
                          user_projects=user_projects,
                          user_reports=user_reports,
+                         user_logbook=user_logbook,
                          sidebar_open=sidebar_open,
                          **analytics)
 
@@ -1241,10 +1310,10 @@ def treasurer_dashboard():
 @app.route('/bmo')
 @login_required(role='BMO')
 def bmo_dashboard():
-    # FIXED: Get analytics data including roles_count
+    # FIXED: Use enhanced analytics that includes roles_count
     analytics = get_dashboard_analytics()
     recent_activities = get_recent_activities()
-    user_projects, user_reports = get_user_stats(session['user']['id'])
+    user_projects, user_reports, user_logbook = get_user_stats(session['user']['id'])
     
     # ✅ ADD SIDEBAR PARAMETER CHECK
     sidebar_open = request.args.get('sidebar') == 'open'
@@ -1253,6 +1322,7 @@ def bmo_dashboard():
                          recent_activities=recent_activities,
                          user_projects=user_projects,
                          user_reports=user_reports,
+                         user_logbook=user_logbook,
                          sidebar_open=sidebar_open,
                          **analytics)
 
