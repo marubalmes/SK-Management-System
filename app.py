@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory, abort, jsonify
 from functools import wraps
-from datetime import datetime, date, timedelta
+from datetime import datetime, date as date_module, timedelta  # Changed import name
 from flask_mysqldb import MySQL
 import os
 from werkzeug.utils import secure_filename
 from collections import defaultdict
 from decimal import Decimal
+import math
 
 # --- Config ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +21,9 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = '1234'
 app.config['MYSQL_DB'] = 'sk_ims_database'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+
+# Pagination config
+ITEMS_PER_PAGE = 10  # Number of items per page
 
 # Upload directories
 UPLOAD_BASE = os.path.join(app.static_folder, 'uploads')
@@ -36,6 +40,42 @@ ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'xlsx', 'csv'}
 
 mysql = MySQL(app)
 
+# --- Pagination Helper ---
+def get_pagination_data(page, total_items, per_page=ITEMS_PER_PAGE):
+    """Calculate pagination parameters"""
+    if total_items <= per_page:
+        # If total items is less than or equal to per_page, no pagination needed
+        return {
+            'current_page': 1,
+            'per_page': per_page,
+            'total_items': total_items,
+            'total_pages': 1,
+            'offset': 0,
+            'has_prev': False,
+            'has_next': False,
+            'prev_page': 1,
+            'next_page': 1,
+            'page_range': [1],
+            'show_pagination': False  # Add this flag
+        }
+    
+    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
+    page = max(1, min(page, total_pages)) if total_pages > 0 else 1
+    offset = (page - 1) * per_page
+    
+    return {
+        'current_page': page,
+        'per_page': per_page,
+        'total_items': total_items,
+        'total_pages': total_pages,
+        'offset': offset,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_page': page - 1,
+        'next_page': page + 1,
+        'page_range': list(range(max(1, page - 2), min(total_pages + 1, page + 3))),
+        'show_pagination': True  # Add this flag
+    }
 
 # --- Helpers ---
 def allowed_file(filename):
@@ -362,7 +402,6 @@ def get_recent_activities():
     # Sort by time and return top 10
     return sorted(activities, key=lambda x: x['time'], reverse=True)[:10]
 
-
 # ---------- Routes ----------
 @app.route('/')
 def index():
@@ -556,16 +595,32 @@ def delete_user(user_id):
     return redirect(url_for('user_management') + '?sidebar=open')  # ✅ PRESERVE SIDEBAR STATE
 
 
-# --- PROJECTS ---
+# --- PROJECTS (with pagination) ---
 @app.route('/projects')
 @login_required()
 def projects():
+    page = request.args.get('page', 1, type=int)
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM projects ORDER BY start_date DESC')
-    projects = cur.fetchall()
+    
+    # Get total count
+    cur.execute('SELECT COUNT(*) as total FROM projects')
+    total_items = cur.fetchone()['total']
+    
+    # Calculate pagination
+    pagination = get_pagination_data(page, total_items)
+    
+    # Get paginated projects
+    cur.execute('''
+        SELECT * FROM projects 
+        ORDER BY start_date DESC 
+        LIMIT %s OFFSET %s
+    ''', (pagination['per_page'], pagination['offset']))
+    projects_data = cur.fetchall()
     
     # Get budget allocations for each project
-    for project in projects:
+    for project in projects_data:
         cur.execute('''
             SELECT pb.allocated_amount, b.name as budget_name
             FROM project_budgets pb
@@ -582,10 +637,12 @@ def projects():
     
     cur.close()
     
-    # ✅ ADD SIDEBAR PARAMETER CHECK
-    sidebar_open = request.args.get('sidebar') == 'open'
-    
-    return render_template('projects.html', projects=projects, sidebar_open=sidebar_open)
+    # Add min function to template context
+    return render_template('projects.html', 
+                         projects=projects_data, 
+                         sidebar_open=sidebar_open,
+                         pagination=pagination,
+                         min=min)
 
 
 @app.route('/projects/new', methods=['GET', 'POST'])
@@ -905,11 +962,11 @@ def unlink_report_from_project(proj_id, report_id):
     return redirect(url_for('project_updates', proj_id=proj_id) + '?sidebar=open')
 
 
-# --- LOGBOOK ---
+# --- LOGBOOK (with pagination) ---
 @app.route('/logbook', methods=['GET', 'POST'])
 @login_required()
 def logbook():
-    # ✅ ADD SIDEBAR PARAMETER CHECK
+    page = request.args.get('page', 1, type=int)
     sidebar_open = request.args.get('sidebar') == 'open'
     
     cur = mysql.connection.cursor()
@@ -921,11 +978,11 @@ def logbook():
         sitio = request.form.get('sitio', '').strip()
         time_in = request.form.get('time_in') or None
         time_out = request.form.get('time_out') or None
-        date = request.form.get('date') or None
+        entry_date = request.form.get('date') or None  # Changed variable name
         concern = request.form.get('concern', '').strip()
         evidence_files = request.files.getlist('evidence')
 
-        if not first or not last or not date:
+        if not first or not last or not entry_date:
             flash('Please fill First Name, Last Name and Date', 'danger')
         else:
             # Handle evidence file uploads
@@ -946,17 +1003,38 @@ def logbook():
 
             cur.execute(
                 'INSERT INTO logbook (first_name, middle_name, last_name, sitio, time_in, time_out, date, concern, evidence_files, created_by) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                (first, middle, last, sitio, time_in, time_out, date, concern, evidence_db, session['user']['id'])
+                (first, middle, last, sitio, time_in, time_out, entry_date, concern, evidence_db, session['user']['id'])
             )
             mysql.connection.commit()
             flash('Logbook entry added successfully!', 'success')
+            # Redirect to first page after adding new entry
+            return redirect(url_for('logbook', page=1) + '?sidebar=open')
 
-    cur.execute('SELECT * FROM logbook ORDER BY date DESC, id DESC')
+    # Get total count
+    cur.execute('SELECT COUNT(*) as total FROM logbook')
+    total_items = cur.fetchone()['total']
+    
+    # Calculate pagination
+    pagination = get_pagination_data(page, total_items)
+    
+    # Get paginated entries
+    cur.execute('''
+        SELECT * FROM logbook 
+        ORDER BY date DESC, id DESC 
+        LIMIT %s OFFSET %s
+    ''', (pagination['per_page'], pagination['offset']))
     entries = cur.fetchall()
+    
     cur.close()
 
     sitios = ['Asana 1', 'Asana 2', 'Dao', 'Ipil', 'Maulawin', 'Kamagong', 'Yakal']
-    return render_template('logbook.html', entries=entries, sitios=sitios, sidebar_open=sidebar_open)
+    return render_template('logbook.html', 
+                         entries=entries, 
+                         sitios=sitios, 
+                         sidebar_open=sidebar_open,
+                         pagination=pagination,
+                         today=date_module.today(),
+                         min=min)  # Added min function
 
 
 @app.route('/logbook/edit/<int:entry_id>', methods=['GET', 'POST'])
@@ -974,11 +1052,11 @@ def logbook_edit(entry_id):
         sitio = request.form.get('sitio', '').strip()
         time_in = request.form.get('time_in') or None
         time_out = request.form.get('time_out') or None
-        date = request.form.get('date') or None
+        entry_date = request.form.get('date') or None  # Changed variable name
         concern = request.form.get('concern', '').strip()
         evidence_files = request.files.getlist('evidence')
 
-        if not first or not last or not date:
+        if not first or not last or not entry_date:
             flash('Please fill First Name, Last Name and Date', 'danger')
         else:
             # Handle evidence file uploads for editing
@@ -1004,7 +1082,7 @@ def logbook_edit(entry_id):
                 SET first_name=%s, middle_name=%s, last_name=%s, sitio=%s,
                     time_in=%s, time_out=%s, date=%s, concern=%s
                 WHERE id=%s
-            ''', (first, middle, last, sitio, time_in, time_out, date, concern, entry_id))
+            ''', (first, middle, last, sitio, time_in, time_out, entry_date, concern, entry_id))
             mysql.connection.commit()
             flash('Logbook entry updated successfully!', 'success')
             cur.close()
@@ -1066,12 +1144,28 @@ def serve_logbook_evidence(filename):
     return send_from_directory(LOGBOOK_EVIDENCE_UPLOADS, filename, as_attachment=False)
 
 
-# --- REPORTS ---
+# --- REPORTS (with pagination) ---
 @app.route('/reports')
 @login_required()
 def reports():
+    page = request.args.get('page', 1, type=int)
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM reports ORDER BY uploaded_at DESC')
+    
+    # Get total count
+    cur.execute('SELECT COUNT(*) as total FROM reports')
+    total_items = cur.fetchone()['total']
+    
+    # Calculate pagination
+    pagination = get_pagination_data(page, total_items)
+    
+    # Get paginated reports
+    cur.execute('''
+        SELECT * FROM reports 
+        ORDER BY uploaded_at DESC 
+        LIMIT %s OFFSET %s
+    ''', (pagination['per_page'], pagination['offset']))
     reports_data = cur.fetchall()
     
     # Get linked projects for each report
@@ -1088,10 +1182,11 @@ def reports():
     
     cur.close()
     
-    # ✅ ADD SIDEBAR PARAMETER CHECK
-    sidebar_open = request.args.get('sidebar') == 'open'
-    
-    return render_template('reports.html', reports=reports_with_projects, sidebar_open=sidebar_open)
+    return render_template('reports.html', 
+                         reports=reports_with_projects, 
+                         sidebar_open=sidebar_open,
+                         pagination=pagination,
+                         min=min)  # Added min function
 
 
 @app.route('/reports/new', methods=['GET', 'POST'])
@@ -1127,7 +1222,7 @@ def report_new():
                 flash('File type not allowed', 'danger')
                 return redirect(url_for('report_new'))
 
-        uploaded_at = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        uploaded_at = datetime.utcnow().strftime('%Y-%m-d %H:%M:%S')
         cur = mysql.connection.cursor()
         cur.execute(
             'INSERT INTO reports (type, filename, uploaded_at, reported_for, notes, created_by) VALUES (%s,%s,%s,%s,%s,%s)',
@@ -1385,9 +1480,13 @@ def budget_approvals():
                          pending_allocations=pending_allocations,  # ADDED THIS PARAMETER
                          sidebar_open=sidebar_open)
 
+# --- BUDGETS (with pagination) ---
 @app.route('/budgets')
 @login_required()
 def budgets():
+    page = request.args.get('page', 1, type=int)
+    sidebar_open = request.args.get('sidebar') == 'open'
+    
     # Restrict access for Treasurer, BMO, and Secretary to view only
     if session['user']['role'] in ['Secretary']:
         is_view_only = True
@@ -1400,8 +1499,19 @@ def budgets():
     
     cur = mysql.connection.cursor()
     
-    # Get all budgets
-    cur.execute('SELECT * FROM budgets ORDER BY created_at DESC')
+    # Get total count
+    cur.execute('SELECT COUNT(*) as total FROM budgets')
+    total_items = cur.fetchone()['total']
+    
+    # Calculate pagination
+    pagination = get_pagination_data(page, total_items)
+    
+    # Get paginated budgets
+    cur.execute('''
+        SELECT * FROM budgets 
+        ORDER BY created_at DESC 
+        LIMIT %s OFFSET %s
+    ''', (pagination['per_page'], pagination['offset']))
     budgets_data = cur.fetchall()
     
     # Get budget statistics and linked projects
@@ -1431,7 +1541,7 @@ def budgets():
         linked_projects = cur.fetchall()
         budget['linked_projects'] = linked_projects
     
-    # Get recent activity
+    # Get recent activity (always show last 10 regardless of pagination)
     cur.execute('''
         SELECT h.*, u.fullname as performer_name, b.name as budget_name
         FROM budget_activity_history h
@@ -1443,12 +1553,13 @@ def budgets():
     
     cur.close()
     
-    sidebar_open = request.args.get('sidebar') == 'open'
     return render_template('budgets.html', 
                          budgets=budgets_data, 
                          recent_activity=recent_activity,
                          is_view_only=is_view_only,
-                         sidebar_open=sidebar_open)
+                         sidebar_open=sidebar_open,
+                         pagination=pagination,
+                         min=min)  # Added min function
 
 
 @app.route('/budgets/new', methods=['GET', 'POST'])
@@ -1651,9 +1762,11 @@ def new_budget_entry(budget_id):
                          sidebar_open=sidebar_open)
 
 
+# --- BUDGET DETAILS (with pagination for entries) ---
 @app.route('/budgets/<int:budget_id>')
 @login_required()
 def budget_details(budget_id):
+    page = request.args.get('page', 1, type=int)
     sidebar_open = request.args.get('sidebar') == 'open'
     
     cur = mysql.connection.cursor()
@@ -1667,7 +1780,14 @@ def budget_details(budget_id):
         cur.close()
         return redirect(url_for('budgets'))
     
-    # Get budget entries
+    # Get total count of entries
+    cur.execute('SELECT COUNT(*) as total FROM budget_entries WHERE budget_id=%s', (budget_id,))
+    total_items = cur.fetchone()['total']
+    
+    # Calculate pagination
+    pagination = get_pagination_data(page, total_items)
+    
+    # Get paginated budget entries
     cur.execute('''
         SELECT be.*, u.fullname as creator_name, 
                au.fullname as approver_name,
@@ -1678,7 +1798,8 @@ def budget_details(budget_id):
         LEFT JOIN projects p ON be.project_id = p.id
         WHERE be.budget_id=%s
         ORDER BY be.entry_date DESC, be.created_at DESC
-    ''', (budget_id,))
+        LIMIT %s OFFSET %s
+    ''', (budget_id, pagination['per_page'], pagination['offset']))
     entries = cur.fetchall()
     
     # Get projects linked to this budget - UPDATED QUERY to include status
@@ -1699,7 +1820,7 @@ def budget_details(budget_id):
     ''', (budget_id,))
     project_allocations = cur.fetchall()
     
-    # Get activity history for this budget
+    # Get activity history for this budget (always show last 20)
     cur.execute('''
         SELECT h.*, u.fullname as performer_name
         FROM budget_activity_history h
@@ -1734,7 +1855,9 @@ def budget_details(budget_id):
                          activity_history=activity_history,
                          stats=stats,
                          projects=projects,
-                         sidebar_open=sidebar_open)
+                         sidebar_open=sidebar_open,
+                         pagination=pagination,
+                         min=min)  # Added min function
 
 
 # --- BUDGET ENTRY APPROVAL ROUTES ---

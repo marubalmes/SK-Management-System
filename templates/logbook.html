@@ -7,7 +7,6 @@
       <h3 style="margin: 0;">Logbook Management</h3>
       <p style="margin: 5px 0 0; color: #666; font-size: 0.95em;">Track and manage visitor entries with detailed information</p>
     </div>
-    
   </div>
 
   <!-- Logbook Statistics -->
@@ -18,24 +17,16 @@
     </h4>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
       <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ entries|length }}</div>
+        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ pagination.total_items }}</div>
         <div style="color: #666;">Total Entries</div>
       </div>
       <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="todayCount">
-          {{ entries|selectattr('date', 'equalto', today)|list|length }}
-        </div>
+        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="todayCount">0</div>
         <div style="color: #666;">Today's Entries</div>
       </div>
       <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="currentMonthCount">
-          {{ entries|selectattr('date')|list|length }}
-        </div>
+        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="currentMonthCount">0</div>
         <div style="color: #666;">This Month</div>
-      </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #17a2b8;">{{ entries|selectattr('evidence_files')|list|length }}</div>
-        <div style="color: #666;">With Evidence</div>
       </div>
     </div>
   </div>
@@ -170,6 +161,44 @@
   <!-- Entries Table -->
   <div class="card">
     {% if entries %}
+    <!-- Pagination Controls TOP -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; border-bottom: 1px solid #e9ecef;">
+      <span style="color: #666; font-size: 0.9em;">
+        {% set start_item = ((pagination.current_page - 1) * pagination.per_page) + 1 %}
+        {% set end_item = pagination.current_page * pagination.per_page %}
+        {% if end_item > pagination.total_items %}
+          {% set end_item = pagination.total_items %}
+        {% endif %}
+        Showing {{ start_item }} to {{ end_item }} of {{ pagination.total_items }} entries
+      </span>
+      
+      {% if pagination.total_pages > 1 %}
+      <div style="display: flex; gap: 5px; align-items: center;">
+        {% if pagination.has_prev %}
+          <a href="{{ url_for('logbook', page=pagination.prev_page, sidebar='open' if sidebar_open else '') }}" class="pagination-btn" title="Previous">
+            <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+          </a>
+        {% endif %}
+        
+        {% for page_num in pagination.page_range %}
+          {% if page_num == pagination.current_page %}
+            <span class="pagination-btn active">{{ page_num }}</span>
+          {% else %}
+            <a href="{{ url_for('logbook', page=page_num, sidebar='open' if sidebar_open else '') }}" class="pagination-btn">
+              {{ page_num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+          <a href="{{ url_for('logbook', page=pagination.next_page, sidebar='open' if sidebar_open else '') }}" class="pagination-btn" title="Next">
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+          </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    
     <div class="table-responsive">
       <table class="table" id="logbookTable">
         <thead>
@@ -264,8 +293,6 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <style>
-
-
 .table-responsive {
   overflow-x: auto;
   border-radius: 8px;
@@ -302,6 +329,8 @@
 
 .table tbody tr:hover {
   background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .btn-secondary {
@@ -322,7 +351,8 @@
 
 .btn-secondary:hover {
   background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .card {
@@ -332,10 +362,12 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 25px;
   border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
 }
 
 .card:hover {
   box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
 }
 
 .form-control {
@@ -352,6 +384,7 @@
   border-color: #007bff;
   outline: none;
   box-shadow: 0 0 0 3px rgba(0,123,255,0.1), inset 0 1px 3px rgba(0,0,0,0.05);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -374,6 +407,7 @@
 .btn-outline:hover {
   background: #ff9800;
   color: white;
+  transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(255,152,0,0.3);
 }
 
@@ -395,7 +429,8 @@
 
 .btn:hover {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  box-shadow: 0 3px 6px rgba(255,152,0,0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
   color: white;
 }
 
@@ -487,6 +522,48 @@
 
 .table th:last-child {
   border-top-right-radius: 8px;
+}
+
+/* Enhanced Pagination Styles */
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  color: #495057;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.pagination-btn:hover {
+  background: #f8f9fa;
+  border-color: #ff9800;
+  color: #ff9800;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255,152,0,0.2);
+}
+
+.pagination-btn.active {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-color: #ff9800;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+}
+
+.pagination-btn.active:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  color: white;
+  border-color: #ef6c00;
 }
 </style>
 

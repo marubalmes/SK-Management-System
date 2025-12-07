@@ -3,36 +3,37 @@
 
 <!-- HERO Section -->
 <section class="hero-section">
-  <!-- WELCOME MESSAGE AT TOP CENTER -->
-  <div class="welcome-top">
-    <h1></h1>
-  </div>
+  <!-- Dark overlay for better text readability -->
+  <div class="hero-overlay"></div>
   
-  <!-- GET STARTED BUTTON AT BOTTOM -->
-  <div class="hero-content">
-    <a href="{{ url_for('login') }}" class="hero-btn">Get Started</a>
+  <!-- Hero content positioned LOWER -->
+  <div class="hero-content-lower">
+    <div class="hero-text">
+      <h1>SK Santisima Cruz</h1>
+    </div>
+    
+    <!-- Get Started Button -->
+    <div class="hero-action">
+      <a href="{{ url_for('login') }}" class="hero-btn">
+        <span>Get Started</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
   </div>
 </section>
 
-<!-- MOVED TITLE + SUBTITLE -->
-<section class="intro-text">
-  <h1>SK Santisima Cruz</h1>
-  <p>Empowering the Youth through Digital Transparency and Community Development</p>
-</section>
+<!-- SK OFFICIALS Section -->
+<section class="officials-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Meet Our SK Officials</h2>
+      <p class="section-subtitle">Dedicated leaders serving the youth of Santisima Cruz</p>
+    </div>
 
-<!-- MEMBER SHOWCASE SECTION -->
-<div class="container section">
-  <h3 style="text-align:center; margin-bottom:40px;">Meet Our SK Officials</h3>
-  
-  <!-- Single Tab -->
-  <div class="member-tabs">
-    <button class="tab-btn active" data-tab="sk-members">SK Officials</button>
-  </div>
-
-  <!-- Carousel Container -->
-  <div class="carousel-container">
-    <!-- SK Members Tab Content -->
-    <div class="tab-content active" id="sk-members">
+    <!-- Original Carousel Design -->
+    <div class="carousel-container">
       <div class="carousel">
         <div class="carousel-track">
           <!-- SK Chairperson -->
@@ -139,487 +140,649 @@
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ABOUT US section -->
-<div class="container section">
-  <h3>About Us</h3>
-  <p style="text-align:center;max-width:900px;margin:10px auto;color:#555">
-    The Sangguniang Kabataan (SK) of Barangay Santisima Cruz aims to strengthen youth involvement in governance and development projects.
-  </p>
-
-  <div class="cards" style="margin-top:30px">
-    <div class="card">
-      <h4>Leadership Training</h4>
-      <p>Developing leadership skills and community participation among the youth.</p>
+<!-- SERVICES Section -->
+<section class="services-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Our Services</h2>
+      <p class="section-subtitle">Building a better future through youth engagement</p>
     </div>
-
-    <div class="card">
-      <h4>Environmental Projects</h4>
-      <p>Encouraging sustainability through clean-up drives and tree planting activities.</p>
-    </div>
-
-    <div class="card">
-      <h4>Community Outreach</h4>
-      <p>Providing support for education, sports, and health through youth engagement.</p>
+    
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">🎯</div>
+        <h3>Leadership Development</h3>
+        <p>Comprehensive training programs to develop leadership skills and community participation among youth.</p>
+      </div>
+      
+      <div class="service-card">
+        <div class="service-icon">🌱</div>
+        <h3>Environmental Projects</h3>
+        <p>Sustainability initiatives including clean-up drives, tree planting, and environmental education programs.</p>
+      </div>
+      
+      <div class="service-card">
+        <div class="service-icon">🤝</div>
+        <h3>Community Outreach</h3>
+        <p>Support programs for education, sports, health, and social welfare through active youth engagement.</p>
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- CONTACT Section -->
+<section class="contact-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Contact Us</h2>
+    </div>
+    
+    <div class="contact-info">
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div>
+          <h4>Office Location</h4>
+          <p>SK Santisima Cruz Office<br>
+          Barangay Hall Compound<br>
+          Santisima Cruz, Laguna</p>
+        </div>
+      </div>
+      
+      <div class="contact-item">
+        <div class="contact-icon">📞</div>
+        <div>
+          <h4>Contact Number</h4>
+          <p>Available during office hours<br>
+          8:00 AM - 5:00 PM, Monday to Friday</p>
+        </div>
+      </div>
+      
+      <div class="contact-item">
+        <div class="contact-icon">✉️</div>
+        <div>
+          <h4>Email Address</h4>
+          <p>For inquiries and concerns:<br>
+          sksantisimacruz@email.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <style>
-/* REMOVE white background override - let base.html handle the dashbg.jpg */
-/* body.homepage {
-    background: #ffffff !important;
-} */
+/* ===== GLOBAL VARIABLES ===== */
+:root {
+  --primary: #ff9800;
+  --primary-dark: #f57c00;
+  --primary-light: #ffe0b2;
+  --secondary: #2196f3;
+  --dark: #1a237e;
+  --light: #f5f5f5;
+  --white: #ffffff;
+  --gray: #666666;
+  --gray-light: #e0e0e0;
+  --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --radius: 12px;
+  --transition: all 0.3s ease;
+}
 
-/* Hero section with background image */
+/* ===== HERO SECTION - TEXT LOWERED ===== */
 .hero-section {
-    height: 100vh;
-    width: 100%;
-    background: url("{{ url_for('static', filename='skbg.png') }}") center center / cover no-repeat !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+  height: 100vh;
+  min-height: 700px;
+  width: 100%;
+  background: url("{{ url_for('static', filename='skbg.png') }}") center center / cover no-repeat !important;
+  display: flex;
+  align-items: flex-end; /* Changed to flex-end to push content to bottom */
+  justify-content: center;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  padding-bottom: 100px; /* Added padding at bottom */
 }
 
-/* Dark overlay for better text readability */
-.hero-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 1;
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
 
-/* Smooth fade gradient at the bottom */
+/* Smooth fade gradient at the bottom - made more subtle */
 .hero-section::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 150px; /* Adjust this value to control fade height */
-    background: linear-gradient(to bottom, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.1) 20%,
-        rgba(255, 255, 255, 0.3) 40%,
-        rgba(255, 255, 255, 0.6) 70%,
-        rgba(255, 255, 255, 0.9) 90%,
-        rgba(255, 255, 255, 1) 100%);
-    z-index: 1;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300px; /* Increased fade height for smoother transition */
+  background: linear-gradient(to bottom, 
+    transparent 0%, 
+    rgba(0, 0, 0, 0.1) 20%,
+    rgba(0, 0, 0, 0.3) 40%,
+    rgba(0, 0, 0, 0.6) 70%,
+    rgba(0, 0, 0, 0.8) 90%,
+    rgba(0, 0, 0, 0.9) 100%);
+  z-index: 1;
+  pointer-events: none;
 }
 
-/* Welcome text styling */
-.welcome-top {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-    width: 100%;
-    padding: 0 20px;
-    z-index: 2;
+/* Hero content positioned at BOTTOM - significantly lowered */
+.hero-content-lower {
+  position: relative;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  width: 100%;
+  padding: 0 20px;
+  z-index: 2;
+  margin-top: auto; /* Push to bottom */
+  padding-bottom: 60px; /* Added bottom padding */
 }
 
-.welcome-top h1 {
-    font-size: 3.5rem;
-    font-weight: 800;
-    margin-bottom: 15px;
-    color: #fff;
-    letter-spacing: 1px;
+.hero-text h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: #fff;
+  letter-spacing: 1px;
+  animation: fadeInUp 1s ease-out;
 }
 
-/* Hero button positioning */
-.hero-content {
-    position: absolute;
-    bottom: 180px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    z-index: 2;
+.hero-text .subtitle {
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  opacity: 0.9;
+  font-weight: 300;
+  animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.hero-text .mission {
+  font-size: 1.2rem;
+  margin: 0 0 40px 0;
+  opacity: 0.9;
+  animation: fadeInUp 1s ease-out 0.3s both;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.hero-action {
+  animation: fadeInUp 1s ease-out 0.4s both;
 }
 
 .hero-btn {
-    font-size: 22px;
-    font-weight: 600;
-    padding: 16px 48px;
-    border: 3px solid #ff9800;
-    border-radius: 50px;
-    background: transparent;
-    color: #ff9800;
-    text-decoration: none;
-    transition: all 0.25s ease;
-    display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  color: #ff9800;
+  padding: 16px 48px;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 3px solid #ff9800;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
 }
 
 .hero-btn:hover {
-    background: #ff9800;
-    color: white;
-    transform: scale(1.05);
+  background: #ff9800;
+  color: white;
+  transform: scale(1.05);
 }
 
-/* Intro text section */
-.intro-text {
-    text-align: center;
-    margin: 60px auto 40px;
-    padding: 0 20px;
-    /* Remove background: white since we want dashbg.jpg to show */
+.hero-btn svg {
+  transition: transform 0.3s ease;
 }
 
-.intro-text h1 {
-    font-size: 38px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 15px;
+.hero-btn:hover svg {
+  transform: translateX(5px);
 }
 
-.intro-text p {
-    font-size: 18px;
-    color: #666;
-    max-width: 800px;
-    margin: 0 auto;
+.btn-note {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
 }
 
-/* Container sections - make them semi-transparent to show dashbg.jpg */
-.container.section {
-    background: rgba(255, 255, 255, 0.92);
-    padding: 60px 20px;
-    margin: 20px auto;
-    border-radius: 15px;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    max-width: 1200px;
+/* ===== OFFICIALS SECTION ===== */
+.officials-section {
+  padding: 100px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, var(--light) 100%);
 }
 
-/* Member Showcase Styles */
-.member-tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 10px;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 12px 24px;
-    margin: 0 10px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #666;
-    cursor: pointer;
-    border-radius: 25px;
-    transition: all 0.3s ease;
-    position: relative;
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
 }
 
-.tab-btn.active {
-    color: #ff9800;
-    background: rgba(255, 152, 0, 0.1);
+.section-header h2 {
+  font-size: 2.5rem;
+  color: var(--dark);
+  margin: 0 0 15px 0;
+  font-weight: 700;
 }
 
-.tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    height: 3px;
-    background: #ff9800;
-    border-radius: 2px;
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--gray);
+  margin: 0 0 20px 0;
 }
 
-.tab-btn:hover {
-    color: #ff9800;
-    background: rgba(255, 152, 0, 0.05);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* Carousel Styles */
+/* Original Carousel Styles */
 .carousel-container {
-    position: relative;
-    max-width: 1200px;
-    margin: 0 auto;
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .carousel {
-    position: relative;
-    width: 100%;
-    height: 400px;
-    overflow: hidden;
-    border-radius: 15px;
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 15px;
 }
 
 .carousel-track {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-    height: 100%;
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  height: 100%;
 }
 
 .carousel-slide {
-    min-width: 25%;
-    height: 100%;
-    padding: 0 15px;
-    box-sizing: border-box;
+  min-width: 25%;
+  height: 100%;
+  padding: 0 15px;
+  box-sizing: border-box;
 }
 
 .member-card {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .member-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
 
 .image-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .carousel-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
 .member-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8));
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 25px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 25px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .image-container:hover .member-overlay {
-    opacity: 1;
+  opacity: 1;
 }
 
 .image-container:hover img {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .member-overlay h4 {
-    margin: 0 0 5px 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  margin: 0 0 5px 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .member-overlay p {
-    margin: 0;
-    font-size: 1rem;
-    opacity: 0.9;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 /* Carousel Controls */
 .carousel-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 152, 0, 0.9);
-    color: white;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 10;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .carousel-btn:hover {
-    background: rgba(255, 152, 0, 1);
-    transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 152, 0, 1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-btn-prev {
-    left: 20px;
+  left: 20px;
 }
 
 .carousel-btn-next {
-    right: 20px;
+  right: 20px;
 }
 
-/* Cards styling */
-.cards {
-    display: flex;
-    gap: 20px;
-    justify-content: space-between;
-    margin-top: 30px;
+/* ===== SERVICES SECTION ===== */
+.services-section {
+  padding: 100px 20px;
+  background: var(--white);
 }
 
-.card {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    border: 1px solid rgba(233, 236, 239, 0.8);
-    backdrop-filter: blur(5px);
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.card h4 {
-    margin: 0 0 12px 0;
-    color: #333;
-    font-size: 1.3rem;
+.service-card {
+  background: var(--white);
+  padding: 40px 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  text-align: center;
+  border-top: 4px solid var(--primary);
 }
 
-.card p {
-    margin: 0;
-    color: #666;
-    line-height: 1.6;
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
 }
 
-/* Responsive Design */
+.service-icon {
+  font-size: 3rem;
+  margin-bottom: 25px;
+  display: inline-block;
+  opacity: 0.9;
+}
+
+.service-card h3 {
+  font-size: 1.5rem;
+  color: var(--dark);
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+.service-card p {
+  color: var(--gray);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== CONTACT SECTION ===== */
+.contact-section {
+  padding: 100px 20px;
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  color: var(--white);
+}
+
+.contact-section .section-header h2 {
+  color: var(--white);
+}
+
+.contact-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.contact-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.contact-icon {
+  font-size: 3rem;
+  color: var(--primary);
+}
+
+.contact-item h4 {
+  font-size: 1.3rem;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.contact-item p {
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
-    .carousel-slide {
-        min-width: 33.333%;
-    }
+  .hero-text h1 {
+    font-size: 3rem;
+  }
+  
+  .hero-text .subtitle {
+    font-size: 1.5rem;
+  }
+  
+  .carousel-slide {
+    min-width: 33.333%;
+  }
+  
+  .section-header h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .hero-section {
+    padding-bottom: 80px;
+  }
+  
+  .hero-content-lower {
+    padding-bottom: 40px;
+  }
+  
+  .hero-text h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-text .subtitle {
+    font-size: 1.3rem;
+  }
+  
+  .hero-text .mission {
+    font-size: 1rem;
+  }
+  
+  .services-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
-    .carousel {
-        height: 350px;
-    }
-    
-    .carousel-slide {
-        min-width: 50%;
-    }
-    
-    .member-tabs {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .tab-btn {
-        margin: 5px 0;
-        width: 200px;
-    }
-    
-    .carousel-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .member-overlay h4 {
-        font-size: 1.2rem;
-    }
-    
-    .member-overlay p {
-        font-size: 0.9rem;
-    }
-    
-    .cards {
-        flex-direction: column;
-    }
-    
-    .welcome-top h1 {
-        font-size: 2.8rem;
-    }
-    
-    .hero-content {
-        bottom: 150px;
-    }
-    
-    .hero-btn {
-        font-size: 20px;
-        padding: 14px 40px;
-    }
-    
-    /* Adjust fade height for mobile */
-    .hero-section::after {
-        height: 100px;
-    }
+  .hero-section {
+    min-height: 80vh;
+    padding-bottom: 60px;
+  }
+  
+  .hero-content-lower {
+    padding-bottom: 30px;
+  }
+  
+  .hero-text h1 {
+    font-size: 2.2rem;
+  }
+  
+  .hero-text .subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .hero-btn {
+    padding: 14px 40px;
+    font-size: 1.1rem;
+  }
+  
+  .carousel {
+    height: 350px;
+  }
+  
+  .carousel-slide {
+    min-width: 50%;
+  }
+  
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .member-overlay h4 {
+    font-size: 1.2rem;
+  }
+  
+  .member-overlay p {
+    font-size: 0.9rem;
+  }
+  
+  .services-grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+  
+  .contact-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-section::after {
+    height: 250px; /* Adjusted for mobile */
+  }
 }
 
 @media (max-width: 480px) {
-    .carousel {
-        height: 300px;
-    }
-    
-    .carousel-slide {
-        min-width: 100%;
-    }
-    
-    .carousel-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-    }
-    
-    .member-overlay {
-        padding: 15px;
-    }
-    
-    .member-overlay h4 {
-        font-size: 1.1rem;
-    }
-    
-    .member-overlay p {
-        font-size: 0.8rem;
-    }
-    
-    .welcome-top h1 {
-        font-size: 2.2rem;
-    }
-    
-    .hero-btn {
-        font-size: 18px;
-        padding: 12px 36px;
-    }
-    
-    /* Further adjust fade height for very small screens */
-    .hero-section::after {
-        height: 80px;
-    }
+  .hero-section {
+    padding-bottom: 50px;
+  }
+  
+  .hero-content-lower {
+    padding-bottom: 20px;
+  }
+  
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  
+  .hero-text .subtitle {
+    font-size: 1rem;
+  }
+  
+  .hero-btn {
+    font-size: 1rem;
+    padding: 12px 36px;
+  }
+  
+  .carousel {
+    height: 300px;
+  }
+  
+  .carousel-slide {
+    min-width: 100%;
+  }
+  
+  .carousel-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+  
+  .member-overlay {
+    padding: 15px;
+  }
+  
+  .member-overlay h4 {
+    font-size: 1.1rem;
+  }
+  
+  .member-overlay p {
+    font-size: 0.8rem;
+  }
+  
+  .hero-section::after {
+    height: 200px;
+  }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Carousel functionality
-  function initializeCarousel(carousel) {
+  // Original carousel functionality that was working
+  function initializeCarousel() {
+    const carousel = document.querySelector('.carousel');
     const track = carousel.querySelector('.carousel-track');
     const slides = Array.from(track.children);
     const nextButton = carousel.querySelector('.carousel-btn-next');
@@ -643,7 +806,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       slides.forEach((slide, index) => {
         slide.style.minWidth = slideWidth + 'px';
-        slide.style.left = (slideWidth * index) + 'px';
       });
       
       moveToSlide(currentSlide);
@@ -704,15 +866,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update on window resize
     window.addEventListener('resize', setSlidePosition);
-    
-    return { setSlidePosition, moveToSlide };
   }
   
   // Initialize carousel
-  const carousel = document.querySelector('.carousel');
-  if (carousel) {
-    initializeCarousel(carousel);
-  }
+  initializeCarousel();
+  
+  // Scroll animations for service cards
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animation = 'fadeInUp 0.8s ease forwards';
+      }
+    });
+  }, observerOptions);
+  
+  // Observe service cards
+  document.querySelectorAll('.service-card').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
 });
 </script>
 
