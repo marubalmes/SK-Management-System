@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="check-circle" style="width:24px;height:24px; color:#28a745;"></i>
+      Project Approvals
+    </h3>
+    <a class="btn" href="{{ url_for('projects') }}?sidebar=open">
+      <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Projects
+    </a>
+  </div>
+
+  <!-- Statistics -->
+  <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #dc3545;">{{ pending_projects|length }}</div>
+        <div style="color: #666;">Pending Approval</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;">{{ approved_projects|length }}</div>
+        <div style="color: #666;">Recently Approved</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Projects Section -->
+  <div class="card" style="margin-bottom: 30px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+      <i data-lucide="clock" style="width:18px;height:18px; color:#ffc107;"></i>
+      Projects Pending Approval
+    </h4>
+    
+    {% if pending_projects %}
+    <form method="POST" action="{{ url_for('batch_approve_projects') }}" id="approvalForm">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+              </th>
+              <th>Project Name</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in pending_projects %}
+            <tr>
+              <td>
+                <input type="checkbox" name="project_ids" value="{{ project.id }}" class="project-checkbox">
+              </td>
+              <td>
+                <strong>{{ project.name }}</strong>
+                {% if project.details %}
+                <br><small style="color:#666">{{ project.details[:50] }}{% if project.details|length > 50 %}...{% endif %}</small>
+                {% endif %}
+              </td>
+              <td>{{ project.start_date or 'Not set' }}</td>
+              <td>{{ project.end_date or 'Not set' }}</td>
+              <td>
+                <span class="status-badge status-{{ project.status|lower|replace(' ', '-') }}">
+                  {{ project.status }}
+                </span>
+              </td>
+              <td>
+                {% if project.created_by %}
+                  {% set creator = namespace(user=None) %}
+                  {% for user in users %}
+                    {% if user.id == project.created_by %}
+                      {% set creator.user = user %}
+                    {% endif %}
+                  {% endfor %}
+                  {{ creator.user.fullname if creator.user else 'Unknown' }}
+                {% else %}
+                  Unknown
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <a class="btn-outline" href="{{ url_for('project_updates', proj_id=project.id) }}?sidebar=open" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="eye" style="width:14px;height:14px;"></i> View
+                  </a>
+                  <form method="POST" action="{{ url_for('quick_approve_project', proj_id=project.id) }}" style="margin: 0;">
+                    <button type="submit" class="btn-outline" style="color:#28a745; border-color:#28a745;">
+                      <i data-lucide="check" style="width:14px;height:14px;"></i> Approve
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>Selected:</strong> <span id="selectedCount">0</span> project(s)
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="deselectAll()">
+            <i data-lucide="x" style="width:14px;height:14px;"></i> Deselect All
+          </button>
+          <button type="submit" class="btn" style="background: #28a745;">
+            <i data-lucide="check-circle" style="width:14px;height:14px;"></i> Approve Selected
+          </button>
+        </div>
+      </div>
+    </form>
+    {% else %}
+    <div style="text-align: center; color: #666; padding: 40px;">
+      <i data-lucide="check-circle" style="width:48px;height:48px; color:#28a745; margin-bottom:10px;"></i>
+      <p>No projects pending approval.</p>
+      <p style="font-size: 0.9em; margin-top: 5px;">All projects have been approved.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recently Approved Projects -->
+  <div class="card">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+      <i data-lucide="history" style="width:18px;height:18px; color:#28a745;"></i>
+      Recently Approved Projects
+    </h4>
+    
+    {% if approved_projects %}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Approved Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in approved_projects %}
+          <tr>
+            <td>
+              <strong>{{ project.name }}</strong>
+            </td>
+            <td>
+              {% if project.approved_at_dt %}
+                {{ project.approved_at_dt.strftime('%Y-%m-%d %H:%M') }}
+              {% else %}
+                {{ project.approved_at[:16] if project.approved_at else 'Unknown' }}
+              {% endif %}
+            </td>
+            <td>
+              <span class="status-badge status-{{ project.status|lower|replace(' ', '-') }}">
+                {{ project.status }}
+              </span>
+            </td>
+            <td>
+              <a class="btn-outline" href="{{ url_for('project_updates', proj_id=project.id) }}?sidebar=open" style="display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="eye" style="width:14px;height:14px;"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; color: #666; padding: 20px;">
+      <i data-lucide="calendar" style="width:36px;height:36px; opacity:0.5; margin-bottom:8px;"></i>
+      <p>No recently approved projects.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: bold;
+  display: inline-block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.status-planned { background: #fff3cd; color: #856404; }
+.status-on-going { background: #d1ecf1; color: #0c5460; }
+.status-completed { background: #d4edda; color: #155724; }
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.table th {
+  background: #f57c00;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #ff9800;
+  color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  updateSelectedCount();
+  
+  // Add event listeners to checkboxes
+  const checkboxes = document.querySelectorAll('.project-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateSelectedCount);
+  });
+});
+
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAll');
+  const checkboxes = document.querySelectorAll('.project-checkbox');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = selectAll.checked;
+  });
+  
+  updateSelectedCount();
+}
+
+function deselectAll() {
+  const checkboxes = document.querySelectorAll('.project-checkbox');
+  const selectAll = document.getElementById('selectAll');
+  
+  checkboxes.forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  
+  selectAll.checked = false;
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const checkboxes = document.querySelectorAll('.project-checkbox');
+  let selectedCount = 0;
+  
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      selectedCount++;
+    }
+  });
+  
+  document.getElementById('selectedCount').textContent = selectedCount;
+}
+
+// Form submission confirmation
+document.getElementById('approvalForm').addEventListener('submit', function(e) {
+  const selectedCount = parseInt(document.getElementById('selectedCount').textContent);
+  
+  if (selectedCount === 0) {
+    e.preventDefault();
+    alert('Please select at least one project to approve.');
+    return;
+  }
+  
+  if (!confirm(`Are you sure you want to approve ${selectedCount} project(s)?`)) {
+    e.preventDefault();
+  }
+});
+</script>
+{% endblock %}

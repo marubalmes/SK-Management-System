@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container section panel">
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h3 style="margin: 0;">Reports Management</h3>
+    {% if session.user.role not in ['Treasurer', 'BMO'] %}
+      <a class="btn" href="{{ url_for('report_new') }}?sidebar=open">
+        <i data-lucide="plus" style="width:16px;height:16px;"></i> New Report
+      </a>
+    {% else %}
+      <span class="btn" style="background: #6c757d; cursor: not-allowed; opacity: 0.7;" title="Treasurer/BMO can only view reports">
+        <i data-lucide="eye" style="width:16px;height:16px;"></i> View Only
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Report Statistics -->
+  <div class="card" style="margin-bottom: 20px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+      <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
+      Report Statistics by Category
+    </h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ pagination.total_items }}</div>
+        <div style="color: #666;">Total Reports</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="filesCount">0</div>
+        <div style="color: #666;">With Files</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="currentMonthCount">0</div>
+        <div style="color: #666;">This Month</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="font-size: 1.5em; font-weight: bold; color: #17a2b8;" id="categoryCount">0</div>
+        <div style="color: #666;">Categories</div>
+      </div>
+    </div>
+    
+    <!-- Category Breakdown -->
+    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;" id="categoryBreakdown">
+      <h5 style="margin: 0 0 10px 0; color: #333;">Report Categories</h5>
+      <div id="categoryList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <!-- Categories will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="card" style="margin-bottom: 20px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+      <i data-lucide="filter" style="width:18px;height:18px;"></i>
+      Filter Reports
+    </h4>
+    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 300px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Search Reports</label>
+        <input id="searchName" class="form-control" placeholder="Search by type, reported for, or notes..." onkeyup="filterTable()" style="width: 100%;">
+      </div>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">Category</label>
+          <select id="filterCategory" onchange="filterTable()" class="form-control" style="width: 150px;">
+            <option value="">All Categories</option>
+            {% for category in report_categories|default([]) %}
+            <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">From Date</label>
+          <input id="fromDate" type="date" onchange="filterTable()" class="form-control" style="width: 150px;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333;">To Date</label>
+          <input id="toDate" type="date" onchange="filterTable()" class="form-control" style="width: 150px;">
+        </div>
+        <button class="btn btn-secondary" onclick="resetFilters()" style="margin-top: 24px;">
+          <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="card">
+    {% if reports %}
+    <!-- Pagination Controls TOP -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; border-bottom: 1px solid #e9ecef;">
+      <span style="color: #666; font-size: 0.9em;">
+        {% set start_item = ((pagination.current_page - 1) * pagination.per_page) + 1 %}
+        {% set end_item = pagination.current_page * pagination.per_page %}
+        {% if end_item > pagination.total_items %}
+          {% set end_item = pagination.total_items %}
+        {% endif %}
+        Showing {{ start_item }} to {{ end_item }} of {{ pagination.total_items }} entries
+      </span>
+      
+      {% if pagination.total_pages > 1 %}
+      <div style="display: flex; gap: 5px; align-items: center;">
+        {% if pagination.has_prev %}
+          <a href="{{ url_for('reports', page=pagination.prev_page, sidebar='open' if sidebar_open else '') }}" class="pagination-btn" title="Previous">
+            <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+          </a>
+        {% endif %}
+        
+        {% for page_num in pagination.page_range %}
+          {% if page_num == pagination.current_page %}
+            <span class="pagination-btn active">{{ page_num }}</span>
+          {% else %}
+            <a href="{{ url_for('reports', page=page_num, sidebar='open' if sidebar_open else '') }}" class="pagination-btn">
+              {{ page_num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+          <a href="{{ url_for('reports', page=pagination.next_page, sidebar='open' if sidebar_open else '') }}" class="pagination-btn" title="Next">
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+          </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table" id="reportsTable">
+        <thead>
+          <tr>
+            <th style="background: #f57c00; color: white;">Type</th>
+            <th style="background: #f57c00; color: white;">Reported For</th>
+            <th style="background: #f57c00; color: white;">Notes</th>
+            <th style="background: #f57c00; color: white;">Linked Projects</th>
+            <th style="background: #f57c00; color: white;">Uploaded Date</th>
+            <th style="background: #f57c00; color: white;">File</th>
+            <th style="background: #f57c00; color: white;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+          <tr>
+            <td>
+              <strong>{{ r.type }}</strong>
+            </td>
+            <td>{{ r.reported_for }}</td>
+            <td>
+              {% if r.notes %}
+                <span title="{{ r.notes }}" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  {{ r.notes }}
+                </span>
+              {% else %}
+                <span style="opacity:0.6">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.linked_projects and r.linked_projects|length > 0 %}
+                <div class="linked-projects-container">
+                  {% for project in r.linked_projects %}
+                  <div class="project-pill status-{{ project.status|lower|replace(' ', '-') }}">
+                    <i data-lucide="folder" style="width:10px;height:10px; margin-right: 4px;"></i>
+                    <span class="project-name">{{ project.name[:20] }}{% if project.name|length > 20 %}...{% endif %}</span>
+                    <span class="project-status">{{ project.status[:1] }}</span>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <span style="color: #6c757d; font-size: 0.85em;">No projects</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.uploaded_at_dt %}
+                {{ r.uploaded_at_dt.strftime('%Y-%m-%d') }}
+              {% else %}
+                <span style="opacity:0.6">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.filename %}
+                <a class="btn-outline" href="{{ url_for('uploaded_file', filename=r.filename.replace('uploads/','')) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="file-text" style="width:14px;height:14px;"></i> View
+                </a>
+              {% else %}
+                <span style="opacity:0.4">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                {% if session.user.role not in ['Treasurer', 'BMO'] %}
+                <a class="btn-outline" href="{{ url_for('report_edit', rep_id=r.id) }}?sidebar=open" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="edit" style="width:14px;height:14px;"></i> Edit
+                </a>
+                <button class="btn-outline" onclick="confirmDelete(event, '{{ url_for('report_delete', rep_id=r.id) }}')" style="display: inline-flex; align-items: center; gap: 4px; color:#dc3545; border-color:#dc3545;">
+                  <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+                </button>
+                {% else %}
+                <span class="btn-outline" style="cursor: not-allowed; opacity: 0.6; border-color: #6c757d; color: #6c757d;">
+                  <i data-lucide="eye" style="width:14px;height:14px;"></i> View
+                </span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; color: #666; padding: 40px;">
+      <i data-lucide="file-text" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
+      <p>No reports found. Create your first report to get started!</p>
+      {% if session.user.role not in ['Treasurer', 'BMO'] %}
+        <a class="btn" href="{{ url_for('report_new') }}?sidebar=open" style="margin-top: 10px;">
+          <i data-lucide="plus" style="width:16px;height:16px;"></i> Create First Report
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+/* ... (keep existing styles the same) ... */
+
+/* Category badge styles */
+.category-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e9ecef;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+
+.category-badge .badge-count {
+  background: #6c757d;
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+/* Enhanced Linked Projects Styling */
+.linked-projects-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.project-pill {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  border: 1px solid;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.project-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.project-name {
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.project-status {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 0.7em;
+  font-weight: 600;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* Status-specific colors for project pills */
+.project-pill.status-planned {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.project-pill.status-on-going {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+.project-pill.status-completed {
+  background: linear-gradient(135deg, #d4edda 0%, #b1dfbb 100%);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.project-pill:hover.status-planned {
+  background: linear-gradient(135deg, #ffeaa7 0%, #ffd966 100%);
+}
+
+.project-pill:hover.status-on-going {
+  background: linear-gradient(135deg, #a6e1ec 0%, #7dd1e3 100%);
+}
+
+.project-pill:hover.status-completed {
+  background: linear-gradient(135deg, #b1dfbb 0%, #8fd19e 100%);
+}
+</style>
+
+<script>
+// Collect report data for statistics
+let allReportsData = [
+  {% for r in reports %}
+  {
+    type: "{{ r.type|e }}",
+    reported_for: "{{ r.reported_for|e }}",
+    notes: "{{ r.notes|e }}",
+    uploaded_date: "{{ r.uploaded_at_dt.strftime('%Y-%m-%d') if r.uploaded_at_dt else '' }}",
+    has_file: {% if r.filename %}true{% else %}false{% endif %},
+    category: "{{ r.type|e }}"
+  },
+  {% endfor %}
+];
+
+function filterTable() {
+  const search = document.getElementById('searchName').value.toLowerCase();
+  const categoryFilter = document.getElementById('filterCategory').value;
+  const fromDate = document.getElementById('fromDate').value;
+  const toDate = document.getElementById('toDate').value;
+  const rows = document.querySelectorAll('#reportsTable tbody tr');
+  
+  let filesCount = 0;
+  let currentMonthCount = 0;
+  let categorySet = new Set();
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  rows.forEach(row => {
+    const type = row.cells[0].textContent.toLowerCase();
+    const reportedFor = row.cells[1].textContent.toLowerCase();
+    const notes = row.cells[2].textContent.toLowerCase();
+    const category = row.cells[0].textContent;
+    const date = row.cells[4].textContent;
+    const hasFile = row.cells[5].querySelector('a') !== null;
+    
+    let matchesSearch = type.includes(search) || reportedFor.includes(search) || notes.includes(search);
+    let matchesCategory = !categoryFilter || category === categoryFilter;
+    let matchesDate = true;
+    
+    // Date filtering only if dates are selected
+    if (fromDate && fromDate !== '') {
+      matchesDate = matchesDate && date >= fromDate;
+    }
+    if (toDate && toDate !== '') {
+      matchesDate = matchesDate && date <= toDate;
+    }
+    
+    row.style.display = matchesSearch && matchesCategory && matchesDate ? '' : 'none';
+    
+    // Collect statistics for visible rows
+    if (matchesSearch && matchesCategory && matchesDate) {
+      // Count files
+      if (hasFile) filesCount++;
+      
+      // Count current month
+      if (date) {
+        const reportDate = new Date(date);
+        if (reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear) {
+          currentMonthCount++;
+        }
+      }
+      
+      // Collect categories
+      if (category) categorySet.add(category);
+    }
+  });
+  
+  // Update counts
+  document.getElementById('filesCount').textContent = filesCount;
+  document.getElementById('currentMonthCount').textContent = currentMonthCount;
+  document.getElementById('categoryCount').textContent = categorySet.size;
+  
+  // Update category breakdown
+  updateCategoryBreakdown(categorySet);
+}
+
+function updateCategoryBreakdown(categorySet) {
+  const categoryList = document.getElementById('categoryList');
+  const breakdownDiv = document.getElementById('categoryBreakdown');
+  
+  if (categorySet.size > 0) {
+    // Count occurrences of each category in visible rows
+    const categoryCounts = {};
+    document.querySelectorAll('#reportsTable tbody tr').forEach(row => {
+      if (row.style.display !== 'none') {
+        const category = row.cells[0].textContent;
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      }
+    });
+    
+    // Create category badges
+    categoryList.innerHTML = '';
+    Object.entries(categoryCounts).forEach(([category, count]) => {
+      const badge = document.createElement('span');
+      badge.className = 'category-badge';
+      badge.innerHTML = `
+        ${category}
+        <span class="badge-count">${count}</span>
+      `;
+      badge.onclick = function() {
+        document.getElementById('filterCategory').value = category;
+        filterTable();
+      };
+      badge.style.cursor = 'pointer';
+      categoryList.appendChild(badge);
+    });
+    
+    breakdownDiv.style.display = 'block';
+  } else {
+    breakdownDiv.style.display = 'none';
+  }
+}
+
+function resetFilters() {
+  document.getElementById('searchName').value = '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('fromDate').value = '';
+  document.getElementById('toDate').value = '';
+  filterTable();
+}
+
+function confirmDelete(event, url) {
+  event.preventDefault();
+  if (confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+    window.location.href = url + '?sidebar=open';
+  }
+}
+
+// Initialize and show all reports immediately
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+  
+  // Initialize category breakdown
+  const initialCategories = new Set();
+  document.querySelectorAll('#reportsTable tbody tr').forEach(row => {
+    const category = row.cells[0].textContent;
+    if (category) initialCategories.add(category);
+  });
+  updateCategoryBreakdown(initialCategories);
+  
+  // Show all reports immediately
+  filterTable();
+});
+</script>
+{% endblock %}
