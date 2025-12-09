@@ -276,6 +276,94 @@ def login_required(role=None):
         return wrapped
     return decorator
 
+# --- Budget Activity Logging Functions ---
+def log_budget_activity(budget_id, description, performer_id=None, amount_changed=0, 
+                       entry_type=None, old_balance=None, new_balance=None):
+    """Log budget activity to the activity history table"""
+    try:
+        # Get performer info
+        if not performer_id and 'user' in session:
+            performer_id = session['user']['id']
+        
+        performer = fetch_one('users', {'id': performer_id}) if performer_id else None
+        performer_name = performer.get('fullname', 'System') if performer else 'System'
+        
+        # Get budget info
+        budget = fetch_one('budgets', {'id': budget_id}) if budget_id else None
+        budget_name = budget.get('name', 'Unknown') if budget else 'Unknown'
+        
+        activity_data = {
+            'budget_id': budget_id,
+            'description': description,
+            'performer_id': performer_id,
+            'performer_name': performer_name,
+            'performed_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+            'amount_changed': float(amount_changed) if amount_changed else 0,
+            'activity_type': entry_type if entry_type else 'budget_activity',
+            'old_balance': float(old_balance) if old_balance is not None else None,
+            'new_balance': float(new_balance) if new_balance is not None else None,
+            'budget_name': budget_name
+        }
+        
+        insert_data('budget_activity_history', activity_data)
+        print(f"✅ Budget activity logged: {description}")
+        return True
+    except Exception as e:
+        print(f"❌ Error logging budget activity: {e}")
+        return False
+
+def log_budget_entry_activity(entry_id, action, performer_id=None):
+    """Log specific budget entry activities (create, approve, reject)"""
+    try:
+        entry = fetch_one('budget_entries', {'id': entry_id})
+        if not entry:
+            return False
+        
+        budget = fetch_one('budgets', {'id': entry['budget_id']}) if entry.get('budget_id') else None
+        performer = fetch_one('users', {'id': performer_id}) if performer_id else None
+        
+        description = ""
+        activity_type = ""
+        
+        if action == 'create':
+            if entry.get('entry_type') == 'increase':
+                description = f"Added budget increase of ₱{entry.get('amount', 0):.2f}: {entry.get('description', 'No description')}"
+                activity_type = 'budget_increase'
+            else:
+                description = f"Requested budget expense of ₱{entry.get('amount', 0):.2f}: {entry.get('description', 'No description')}"
+                activity_type = 'budget_expense'
+        
+        elif action == 'approve':
+            if entry.get('entry_type') == 'increase':
+                description = f"Approved budget increase of ₱{entry.get('amount', 0):.2f}: {entry.get('description', 'No description')}"
+                activity_type = 'entry_approved'
+            else:
+                description = f"Approved budget expense of ₱{entry.get('amount', 0):.2f}: {entry.get('description', 'No description')}"
+                activity_type = 'entry_approved'
+        
+        elif action == 'reject':
+            description = f"Rejected budget entry: {entry.get('description', 'No description')}"
+            activity_type = 'entry_rejected'
+        
+        activity_data = {
+            'budget_id': entry['budget_id'],
+            'description': description,
+            'performer_id': performer_id,
+            'performer_name': performer.get('fullname', 'System') if performer else 'System',
+            'performed_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+            'amount_changed': float(entry.get('amount', 0)) if action in ['create', 'approve'] else 0,
+            'activity_type': activity_type,
+            'old_balance': float(budget.get('current_balance', 0)) if budget else None,
+            'new_balance': None,  # Will be updated after balance change
+            'budget_name': budget.get('name', 'Unknown') if budget else 'Unknown'
+        }
+        
+        insert_data('budget_activity_history', activity_data)
+        return True
+    except Exception as e:
+        print(f"❌ Error logging budget entry activity: {e}")
+        return False
+
 # --- Dashboard statistics ---
 def get_dashboard_stats():
     # Project status counts
@@ -539,10 +627,30 @@ def get_dashboard_analytics():
     }
 
 def get_recent_activities():
-    """Get recent activities for the dashboard"""
+    """Get recent activities for the dashboard including budget activities"""
     activities = []
     
     try:
+        # Get recent budget activities (most recent 10)
+        recent_budget_activities = fetch_all('budget_activity_history', order_by=('performed_at', False), limit=10)
+        
+        for activity in recent_budget_activities:
+            performed_at = parse_datetime(activity.get('performed_at'))
+            if performed_at:
+                # Create activity object in the same format as other activities
+                activities.append({
+                    'type': 'budget',
+                    'description': activity.get('description', 'Budget Activity'),
+                    'time': performed_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'time_obj': performed_at,
+                    'activity_type': activity.get('activity_type', 'budget_activity'),
+                    'performer_name': activity.get('performer_name', 'Unknown'),
+                    'budget_name': activity.get('budget_name'),
+                    'amount_changed': activity.get('amount_changed', 0),
+                    'old_balance': activity.get('old_balance'),
+                    'new_balance': activity.get('new_balance')
+                })
+        
         # Recent projects
         recent_projects = fetch_all('projects', order_by=('created_at', False), limit=5)
         for project in recent_projects:
@@ -575,17 +683,6 @@ def get_recent_activities():
                 'time': entry_date.strftime('%Y-%m-%d') if entry_date else 'N/A',
                 'time_obj': entry_date
             })
-        
-        # Recent budget activities
-        recent_budget_activities = fetch_all('budget_activity_history', order_by=('performed_at', False), limit=5)
-        for activity in recent_budget_activities:
-            performed_at = parse_datetime(activity.get('performed_at'))
-            activities.append({
-                'type': 'budget',
-                'description': f'Budget activity: {activity.get("description", "")}',
-                'time': performed_at.strftime('%Y-%m-%d %H:%M:%S') if performed_at else 'N/A',
-                'time_obj': performed_at
-            })
     
     except Exception as e:
         print(f"Error getting recent activities: {e}")
@@ -599,7 +696,7 @@ def get_recent_activities():
         ]
     
     # Sort by datetime objects, not strings
-    return sorted(activities, key=lambda x: x['time_obj'] if x['time_obj'] else datetime.min, reverse=True)[:10]
+    return sorted(activities, key=lambda x: x['time_obj'] if x['time_obj'] else datetime.min, reverse=True)[:15]
 
 # ---------- Routes ----------
 @app.route('/')
@@ -804,10 +901,19 @@ def project_approvals():
     """Page for SK Chairman to approve multiple projects at once"""
     sidebar_open = request.args.get('sidebar') == 'open'
     
+    # Get all projects for statistics
+    all_projects = fetch_all('projects')
+    
+    # Calculate statistics
+    total_projects = len(all_projects)
+    planned_count = sum(1 for p in all_projects if p.get('status', '').lower() == 'planned')
+    ongoing_count = sum(1 for p in all_projects if p.get('status', '').lower() in ['on-going', 'ongoing'])
+    completed_count = sum(1 for p in all_projects if p.get('status', '').lower() == 'completed')
+    
     # Get projects pending approval
     pending_projects = get_projects_pending_approval()
     
-    # Get approved projects for reference
+    # Get approved projects for reference (last 10)
     approved_projects = fetch_all('projects', {'approved_by_sk_chairman': True}, 
                                  order_by=('approved_at', False), limit=10)
     
@@ -821,11 +927,21 @@ def project_approvals():
             project['approved_at_dt'] = approved_at_dt
         else:
             project['approved_at_dt'] = None
+        
+        # Also get who approved it
+        if project.get('approved_by'):
+            approver = fetch_one('users', {'id': project['approved_by']})
+            if approver:
+                project['approved_by_name'] = approver.get('fullname')
     
     return render_template('projects/project_approvals.html',
                          pending_projects=pending_projects,
                          approved_projects=approved_projects,
                          users=users,
+                         total_projects=total_projects,
+                         planned_count=planned_count,
+                         ongoing_count=ongoing_count,
+                         completed_count=completed_count,
                          sidebar_open=sidebar_open)
 
 @app.route('/projects/batch_approve', methods=['POST'])
@@ -849,7 +965,8 @@ def batch_approve_projects():
                 
                 update_data('projects', project_id, {
                     'approved_by_sk_chairman': True,
-                    'approved_at': approved_at
+                    'approved_at': approved_at,
+                    'approved_by': session['user']['id']
                 })
                 
                 approved_count += 1
@@ -878,7 +995,8 @@ def quick_approve_project(proj_id):
     
     update_data('projects', proj_id, {
         'approved_by_sk_chairman': True,
-        'approved_at': approved_at
+        'approved_at': approved_at,
+        'approved_by': session['user']['id']
     })
     
     flash(f'Project "{project.get("name", "Unnamed")}" approved successfully!', 'success')
@@ -891,20 +1009,28 @@ def projects():
     page = request.args.get('page', 1, type=int)
     sidebar_open = request.args.get('sidebar') == 'open'
     
-    # Get total count
+    # Get all projects for statistics
+    all_projects = fetch_all('projects')
+    
+    # Calculate statistics
+    total_projects = len(all_projects)
+    planned_projects = sum(1 for p in all_projects if p.get('status', '').lower() == 'planned')
+    ongoing_projects = sum(1 for p in all_projects if p.get('status', '').lower() in ['on-going', 'ongoing'])
+    completed_projects = sum(1 for p in all_projects if p.get('status', '').lower() == 'completed')
+    
+    # Calculate approval statistics
+    pending_approval_projects = sum(1 for p in all_projects if not p.get('approved_by_sk_chairman', False))
+    approved_projects_count = sum(1 for p in all_projects if p.get('approved_by_sk_chairman', False))
+    
+    # Get total count for pagination
     total_items = count_rows('projects')
     print(f"DEBUG projects(): Total projects in DB: {total_items}")
     
     # Calculate pagination
     pagination = get_pagination_data(page, total_items)
     
-    # Get paginated projects - FIXED: Use proper Supabase query
+    # Get paginated projects
     try:
-        # Get all projects first for debugging
-        all_projects = fetch_all('projects')
-        print(f"DEBUG projects(): All projects in DB: {len(all_projects)}")
-        
-        # Now get paginated projects
         projects_data = fetch_all('projects', 
                                 order_by=('created_at', False), 
                                 limit=pagination['per_page'], 
@@ -955,6 +1081,12 @@ def projects():
                          projects=projects_data, 
                          sidebar_open=sidebar_open,
                          pagination=pagination,
+                         total_projects=total_projects,
+                         planned_projects=planned_projects,
+                         ongoing_projects=ongoing_projects,
+                         completed_projects=completed_projects,
+                         pending_approval_projects=pending_approval_projects,
+                         approved_projects_count=approved_projects_count,
                          min=min)
 
 @app.route('/projects/new', methods=['GET', 'POST'])
@@ -1327,12 +1459,47 @@ def logbook():
     
     print(f"DEBUG logbook(): Retrieved {len(entries)} entries for page {page}")
     
+    # Get ALL logbook entries for statistics (not just paginated ones)
+    all_entries = fetch_all('logbook')
+    
+    # Calculate statistics
+    today_str = date_module.today().strftime('%Y-%m-%d')
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    
+    today_count = 0
+    current_month_count = 0
+    with_evidence_count = 0
+    
+    for entry in all_entries:
+        entry_date = entry.get('date')
+        
+        # Count today's entries
+        if entry_date == today_str:
+            today_count += 1
+        
+        # Count current month entries
+        if entry_date:
+            entry_date_dt = parse_datetime(entry_date)
+            if entry_date_dt and entry_date_dt.month == current_month and entry_date_dt.year == current_year:
+                current_month_count += 1
+        
+        # Count entries with evidence
+        if entry.get('evidence_files'):
+            with_evidence_count += 1
+    
+    print(f"DEBUG logbook(): Statistics - Today: {today_count}, This Month: {current_month_count}, With Evidence: {with_evidence_count}")
+    
     sitios = ['Asana 1', 'Asana 2', 'Dao', 'Ipil', 'Maulawin', 'Kamagong', 'Yakal']
+    
     return render_template('logbook/logbook.html', 
                          entries=entries, 
                          sitios=sitios, 
                          sidebar_open=sidebar_open,
                          pagination=pagination,
+                         today_count=today_count,
+                         current_month_count=current_month_count,
+                         with_evidence_count=with_evidence_count,
                          today=date_module.today(),
                          min=min)
 
@@ -1895,6 +2062,16 @@ def new_budget():
         
         result = insert_data('budgets', budget_data)
         
+        # Log budget creation activity
+        if result:
+            log_budget_activity(
+                budget_id=result['id'],
+                description=f"Budget '{name}' created with initial amount of ₱{initial_amount:,.2f}",
+                performer_id=session['user']['id'],
+                amount_changed=initial_amount,
+                entry_type='budget_created'
+            )
+        
         # If there's initial amount, create an entry with proper approval status
         if initial_amount > 0 and result:
             # Determine approval status based on user role
@@ -1919,7 +2096,11 @@ def new_budget():
                 'created_by': session['user']['id']
             }
             
-            insert_data('budget_entries', entry_data)
+            entry_result = insert_data('budget_entries', entry_data)
+            
+            # Log entry creation activity
+            if entry_result:
+                log_budget_entry_activity(entry_result['id'], 'create', session['user']['id'])
         
         flash(f'Budget "{name}" created successfully!', 'success')
         return redirect(url_for('budgets') + '?sidebar=open')
@@ -1994,7 +2175,11 @@ def new_budget_entry(budget_id):
         
         print(f"DEBUG new_budget_entry(): Creating budget entry: {entry_data}")
         
-        insert_data('budget_entries', entry_data)
+        result = insert_data('budget_entries', entry_data)
+        
+        # Log entry creation activity
+        if result:
+            log_budget_entry_activity(result['id'], 'create', session['user']['id'])
         
         flash(f'Budget entry created successfully! Status: {status}', 'success')
         return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
@@ -2135,6 +2320,12 @@ def approve_budget_entry(budget_id, entry_id):
         flash('Budget not found', 'danger')
         return redirect(url_for('budgets'))
     
+    # Get old balance for logging
+    old_balance = float(budget.get('current_balance', 0))
+    
+    # Log approval activity BEFORE updating
+    log_budget_entry_activity(entry_id, 'approve', session['user']['id'])
+    
     # Update entry status
     update_data('budget_entries', entry_id, {
         'status': 'approved',
@@ -2143,7 +2334,6 @@ def approve_budget_entry(budget_id, entry_id):
     })
     
     # Update budget balance
-    old_balance = float(budget.get('current_balance', 0))
     if entry.get('entry_type') == 'increase':
         new_balance = old_balance + float(entry.get('amount', 0))
     else:
@@ -2156,6 +2346,17 @@ def approve_budget_entry(budget_id, entry_id):
         new_balance = old_balance - float(entry.get('amount', 0))
     
     update_data('budgets', budget_id, {'current_balance': new_balance})
+    
+    # Log balance change activity
+    log_budget_activity(
+        budget_id=budget_id,
+        description=f"Budget entry approved: {entry.get('description', 'No description')}",
+        performer_id=session['user']['id'],
+        amount_changed=float(entry.get('amount', 0)),
+        entry_type='entry_approved',
+        old_balance=old_balance,
+        new_balance=new_balance
+    )
     
     flash('Budget entry approved successfully!', 'success')
     return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
@@ -2172,6 +2373,9 @@ def reject_budget_entry(budget_id, entry_id):
     if entry.get('status') != 'pending':
         flash('This entry is not pending approval', 'info')
         return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    # Log rejection activity
+    log_budget_entry_activity(entry_id, 'reject', session['user']['id'])
     
     # Update entry status to rejected
     update_data('budget_entries', entry_id, {
@@ -2223,7 +2427,12 @@ def approve_project_allocation(budget_id, allocation_id):
         'project_id': allocation.get('project_id')
     }
     
-    insert_data('budget_entries', entry_data)
+    entry_result = insert_data('budget_entries', entry_data)
+    
+    # Log entry creation and approval
+    if entry_result:
+        log_budget_entry_activity(entry_result['id'], 'create', session['user']['id'])
+        log_budget_entry_activity(entry_result['id'], 'approve', session['user']['id'])
     
     # Update budget balance
     new_balance = current_balance - allocated_amount
@@ -2236,6 +2445,17 @@ def approve_project_allocation(budget_id, allocation_id):
         'approved_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     })
     
+    # Log allocation approval activity
+    log_budget_activity(
+        budget_id=budget_id,
+        description=f"Project allocation approved: {project.get('name')} - ₱{allocated_amount:,.2f}",
+        performer_id=session['user']['id'],
+        amount_changed=allocated_amount,
+        entry_type='project_allocation_approved',
+        old_balance=current_balance,
+        new_balance=new_balance
+    )
+    
     flash('Project allocation approved successfully!', 'success')
     return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
 
@@ -2247,6 +2467,17 @@ def reject_project_allocation(budget_id, allocation_id):
     if not allocation:
         flash('Allocation not found', 'danger')
         return redirect(url_for('budget_details', budget_id=budget_id))
+    
+    project = fetch_one('projects', {'id': allocation.get('project_id')}) if allocation.get('project_id') else None
+    
+    # Log rejection activity
+    log_budget_activity(
+        budget_id=budget_id,
+        description=f"Project allocation rejected: {project.get('name', 'Unknown project') if project else 'Unknown project'} - ₱{allocation.get('allocated_amount', 0):,.2f}",
+        performer_id=session['user']['id'],
+        amount_changed=0,
+        entry_type='project_allocation_rejected'
+    )
     
     # Update allocation status to rejected
     update_data('project_budgets', allocation_id, {
@@ -2305,7 +2536,17 @@ def allocate_project_budget(budget_id):
     
     print(f"DEBUG allocate_project_budget(): Creating allocation: {allocation_data}")
     
-    insert_data('project_budgets', allocation_data)
+    result = insert_data('project_budgets', allocation_data)
+    
+    # Log allocation request activity
+    if result:
+        log_budget_activity(
+            budget_id=budget_id,
+            description=f"Project allocation requested: {project.get('name')} - ₱{amount:,.2f}",
+            performer_id=session['user']['id'],
+            amount_changed=float(amount),
+            entry_type='project_allocation_requested'
+        )
     
     flash(f'Project allocation created successfully! Status: Pending (requires SK Chairman approval)', 'success')
     return redirect(url_for('budget_details', budget_id=budget_id) + '?sidebar=open')
@@ -2335,6 +2576,17 @@ def delete_project_allocation(budget_id, allocation_id):
         flash('Budget not found', 'danger')
         return redirect(url_for('budgets'))
     
+    project = fetch_one('projects', {'id': allocation.get('project_id')}) if allocation.get('project_id') else None
+    
+    # Log allocation removal
+    log_budget_activity(
+        budget_id=budget_id,
+        description=f"Project allocation removed: {project.get('name', 'Unknown project') if project else 'Unknown project'} - ₱{allocation.get('allocated_amount', 0):,.2f} returned to budget",
+        performer_id=session['user']['id'],
+        amount_changed=float(allocation.get('allocated_amount', 0)),
+        entry_type='project_allocation_removed'
+    )
+    
     # Return allocated amount to budget (create increase entry)
     entry_data = {
         'budget_id': budget_id,
@@ -2349,7 +2601,12 @@ def delete_project_allocation(budget_id, allocation_id):
         'project_id': allocation.get('project_id')
     }
     
-    insert_data('budget_entries', entry_data)
+    entry_result = insert_data('budget_entries', entry_data)
+    
+    # Log entry creation and approval
+    if entry_result:
+        log_budget_entry_activity(entry_result['id'], 'create', session['user']['id'])
+        log_budget_entry_activity(entry_result['id'], 'approve', session['user']['id'])
     
     # Update budget balance
     old_balance = float(budget.get('current_balance', 0))

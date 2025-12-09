@@ -321,42 +321,79 @@
     </div>
 
     <!-- Bottom Grid -->
-    <div class="bottom-grid">
-        <!-- Recent Activity -->
-        <div class="card activity-card">
-            <div class="card-header">
-                <h3>Recent Activity</h3>
-                <span class="badge">{{ recent_activities|length }}</span>
-            </div>
-            <div class="activity-list">
+    <!-- Recent Activity Section (in dashboard_base.html) -->
+    <div class="card" style="margin-bottom: 25px;">
+        <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="activity" style="width:18px;height:18px;"></i>
+            Recent Activity
+        </h4>
+        <div style="max-height: 300px; overflow-y: auto;">
+            {% if recent_activities %}
                 {% for activity in recent_activities %}
-                <div class="activity-item">
-                    <div class="activity-icon">
+                <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid #e9ecef;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d;">
                         {% if activity.type == 'project' %}
-                        <i data-lucide="folder" style="width:16px;height:16px;"></i>
+                            <i data-lucide="folder" style="width:16px;height:16px;"></i>
                         {% elif activity.type == 'report' %}
-                        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                            <i data-lucide="file-text" style="width:16px;height:16px;"></i>
                         {% elif activity.type == 'logbook' %}
-                        <i data-lucide="users" style="width:16px;height:16px;"></i>
+                            <i data-lucide="book-open" style="width:16px;height:16px;"></i>
                         {% elif activity.type == 'budget' %}
-                        <i data-lucide="dollar-sign" style="width:16px;height:16px;"></i>
+                            {% if activity.activity_type == 'entry_approved' %}
+                                <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'entry_rejected' %}
+                                <i data-lucide="x-circle" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'budget_created' %}
+                                <i data-lucide="plus-circle" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'budget_increase' %}
+                                <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'budget_expense' %}
+                                <i data-lucide="trending-down" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'project_allocation_approved' %}
+                                <i data-lucide="link" style="width:16px;height:16px;"></i>
+                            {% elif activity.activity_type == 'project_allocation_requested' %}
+                                <i data-lucide="clock" style="width:16px;height:16px;"></i>
+                            {% else %}
+                                <i data-lucide="dollar-sign" style="width:16px;height:16px;"></i>
+                            {% endif %}
                         {% else %}
-                        <i data-lucide="activity" style="width:16px;height:16px;"></i>
+                            <i data-lucide="activity" style="width:16px;height:16px;"></i>
                         {% endif %}
                     </div>
-                    <div class="activity-content">
-                        <p class="activity-text">{{ activity.description }}</p>
-                        <span class="activity-time">{{ activity.time }}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; color: #333;">{{ activity.description }}</div>
+                        <div style="font-size: 0.85em; color: #6c757d;">
+                            {% if activity.performer_name %}
+                                <span>{{ activity.performer_name }}</span> • 
+                            {% endif %}
+                            <span>{{ activity.time }}</span>
+                            {% if activity.budget_name %}
+                                • <span style="color: #f57c00;">{{ activity.budget_name }}</span>
+                            {% endif %}
+                        </div>
+                        {% if activity.amount_changed and activity.amount_changed > 0 %}
+                            <div style="font-size: 0.85em; margin-top: 4px;">
+                                <span style="color: {% if 'increase' in activity.description or 'created' in activity.description or 'added' in activity.description %}#28a745{% else %}#dc3545{% endif %}; font-weight: 600;">
+                                    ₱{{ "%.2f"|format(activity.amount_changed|float) }}
+                                </span>
+                                {% if activity.old_balance is not none and activity.new_balance is not none %}
+                                    <span style="color: #6c757d; margin-left: 8px;">
+                                        Balance: ₱{{ "%.2f"|format(activity.old_balance|float) }} → ₱{{ "%.2f"|format(activity.new_balance|float) }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% else %}
-                <div class="activity-empty">
-                    <i data-lucide="activity" style="width:32px;height:32px;"></i>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 30px; color: #6c757d;">
+                    <i data-lucide="activity" style="width:48px;height:48px; opacity:0.5; margin-bottom:10px;"></i>
                     <p>No recent activity</p>
                 </div>
-                {% endfor %}
-            </div>
+            {% endif %}
         </div>
+    </div>
 
         <!-- Quick Actions -->
         <div class="card quick-actions-card">

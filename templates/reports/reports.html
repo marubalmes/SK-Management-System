@@ -19,24 +19,20 @@
   <div class="card" style="margin-bottom: 20px;">
     <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
       <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
-      Report Statistics by Category
+      Report Statistics
     </h4>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ pagination.total_items }}</div>
-        <div style="color: #666;">Total Reports</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #90caf9;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #1565c0;">{{ pagination.total_items }}</div>
+        <div style="color: #0d47a1; font-weight: 600;">Total Reports</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="filesCount">0</div>
-        <div style="color: #666;">With Files</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #ffc107;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #856404;" id="currentMonthCount">0</div>
+        <div style="color: #856404; font-weight: 600;">This Month</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="currentMonthCount">0</div>
-        <div style="color: #666;">This Month</div>
-      </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #17a2b8;" id="categoryCount">0</div>
-        <div style="color: #666;">Categories</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d4edda 0%, #b1dfbb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #28a745;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #155724;" id="linkedProjectsCount">0</div>
+        <div style="color: #155724; font-weight: 600;">With Linked Projects</div>
       </div>
     </div>
     
@@ -222,8 +218,6 @@
 </div>
 
 <style>
-/* ... (keep existing styles the same) ... */
-
 /* Category badge styles */
 .category-badge {
   padding: 4px 10px;
@@ -236,6 +230,12 @@
   background: #e9ecef;
   color: #495057;
   border: 1px solid #dee2e6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-badge:hover {
+  background: #dee2e6;
 }
 
 .category-badge .badge-count {
@@ -263,13 +263,7 @@
   font-size: 0.75em;
   border: 1px solid;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
   cursor: default;
-}
-
-.project-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .project-name {
@@ -310,16 +304,187 @@
   color: #155724;
 }
 
-.project-pill:hover.status-planned {
-  background: linear-gradient(135deg, #ffeaa7 0%, #ffd966 100%);
+.project-pill.status-ongoing {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
 }
 
-.project-pill:hover.status-on-going {
-  background: linear-gradient(135deg, #a6e1ec 0%, #7dd1e3 100%);
+.project-pill.status-in-progress {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
 }
 
-.project-pill:hover.status-completed {
-  background: linear-gradient(135deg, #b1dfbb 0%, #8fd19e 100%);
+/* Table styles */
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.table th {
+  background: #f57c00;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: top;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  color: #ff9800;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.85em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-outline:hover {
+  background: #ff9800;
+  color: white;
+}
+
+.btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: fit-content;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+}
+
+.form-control {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1), inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Enhanced Pagination Styles */
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  color: #495057;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.pagination-btn:hover {
+  background: #f8f9fa;
+  border-color: #ff9800;
+  color: #ff9800;
+}
+
+.pagination-btn.active {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border-color: #ff9800;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+}
+
+/* View-only button style */
+.btn[style*="cursor: not-allowed"] {
+  background: #6c757d !important;
+  color: white !important;
+  border: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+  box-shadow: none !important;
+}
+
+.btn[style*="cursor: not-allowed"]:hover {
+  background: #6c757d !important;
 }
 </style>
 
@@ -333,6 +498,7 @@ let allReportsData = [
     notes: "{{ r.notes|e }}",
     uploaded_date: "{{ r.uploaded_at_dt.strftime('%Y-%m-%d') if r.uploaded_at_dt else '' }}",
     has_file: {% if r.filename %}true{% else %}false{% endif %},
+    has_linked_projects: {% if r.linked_projects and r.linked_projects|length > 0 %}true{% else %}false{% endif %},
     category: "{{ r.type|e }}"
   },
   {% endfor %}
@@ -345,8 +511,8 @@ function filterTable() {
   const toDate = document.getElementById('toDate').value;
   const rows = document.querySelectorAll('#reportsTable tbody tr');
   
-  let filesCount = 0;
   let currentMonthCount = 0;
+  let linkedProjectsCount = 0;
   let categorySet = new Set();
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -357,7 +523,7 @@ function filterTable() {
     const notes = row.cells[2].textContent.toLowerCase();
     const category = row.cells[0].textContent;
     const date = row.cells[4].textContent;
-    const hasFile = row.cells[5].querySelector('a') !== null;
+    const hasLinkedProjects = row.cells[3].textContent !== 'No projects';
     
     let matchesSearch = type.includes(search) || reportedFor.includes(search) || notes.includes(search);
     let matchesCategory = !categoryFilter || category === categoryFilter;
@@ -375,9 +541,6 @@ function filterTable() {
     
     // Collect statistics for visible rows
     if (matchesSearch && matchesCategory && matchesDate) {
-      // Count files
-      if (hasFile) filesCount++;
-      
       // Count current month
       if (date) {
         const reportDate = new Date(date);
@@ -386,15 +549,17 @@ function filterTable() {
         }
       }
       
+      // Count linked projects
+      if (hasLinkedProjects) linkedProjectsCount++;
+      
       // Collect categories
       if (category) categorySet.add(category);
     }
   });
   
   // Update counts
-  document.getElementById('filesCount').textContent = filesCount;
   document.getElementById('currentMonthCount').textContent = currentMonthCount;
-  document.getElementById('categoryCount').textContent = categorySet.size;
+  document.getElementById('linkedProjectsCount').textContent = linkedProjectsCount;
   
   // Update category breakdown
   updateCategoryBreakdown(categorySet);
@@ -427,7 +592,6 @@ function updateCategoryBreakdown(categorySet) {
         document.getElementById('filterCategory').value = category;
         filterTable();
       };
-      badge.style.cursor = 'pointer';
       categoryList.appendChild(badge);
     });
     
@@ -465,6 +629,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (category) initialCategories.add(category);
   });
   updateCategoryBreakdown(initialCategories);
+  
+  // Calculate initial statistics
+  let initialCurrentMonthCount = 0;
+  let initialLinkedProjectsCount = 0;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  allReportsData.forEach(report => {
+    if (report.has_linked_projects) initialLinkedProjectsCount++;
+    if (report.uploaded_date) {
+      const reportDate = new Date(report.uploaded_date);
+      if (reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear) {
+        initialCurrentMonthCount++;
+      }
+    }
+  });
+  
+  // Set initial counts
+  document.getElementById('currentMonthCount').textContent = initialCurrentMonthCount;
+  document.getElementById('linkedProjectsCount').textContent = initialLinkedProjectsCount;
   
   // Show all reports immediately
   filterTable();

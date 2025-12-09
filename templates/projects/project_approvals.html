@@ -14,14 +14,34 @@
 
   <!-- Statistics -->
   <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+    <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+      <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
+      Approval Statistics
+    </h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
       <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
         <div style="font-size: 1.5em; font-weight: bold; color: #dc3545;">{{ pending_projects|length }}</div>
-        <div style="color: #666;">Pending Approval</div>
+        <div style="color: #666; font-weight: 600;">Pending Approval</div>
       </div>
       <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
         <div style="font-size: 1.5em; font-weight: bold; color: #28a745;">{{ approved_projects|length }}</div>
-        <div style="color: #666;">Recently Approved</div>
+        <div style="color: #666; font-weight: 600;">Recently Approved</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #1565c0;">{{ total_projects }}</div>
+        <div style="color: #666; font-weight: 600;">Total Projects</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #856404;">{{ planned_count }}</div>
+        <div style="color: #666; font-weight: 600;">Planned</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #0c5460;">{{ ongoing_count }}</div>
+        <div style="color: #666; font-weight: 600;">On-going</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #dee2e6;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #155724;">{{ completed_count }}</div>
+        <div style="color: #666; font-weight: 600;">Completed</div>
       </div>
     </div>
   </div>
@@ -138,6 +158,7 @@
             <th>Project Name</th>
             <th>Approved Date</th>
             <th>Status</th>
+            <th>Approved By</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -158,6 +179,15 @@
               <span class="status-badge status-{{ project.status|lower|replace(' ', '-') }}">
                 {{ project.status }}
               </span>
+            </td>
+            <td>
+              {% set approver_user = namespace(user=None) %}
+              {% for user in users %}
+                {% if user.id == project.approved_by %}
+                  {% set approver_user.user = user %}
+                {% endif %}
+              {% endfor %}
+              {{ approver_user.user.fullname if approver_user.user else 'Unknown' }}
             </td>
             <td>
               <a class="btn-outline" href="{{ url_for('project_updates', proj_id=project.id) }}?sidebar=open" style="display: inline-flex; align-items: center; gap: 4px;">
@@ -191,6 +221,8 @@
 .status-planned { background: #fff3cd; color: #856404; }
 .status-on-going { background: #d1ecf1; color: #0c5460; }
 .status-completed { background: #d4edda; color: #155724; }
+.status-approved { background: #d4edda; color: #155724; }
+.status-pending { background: #fff3cd; color: #856404; }
 
 .table-responsive {
   overflow-x: auto;
@@ -241,6 +273,29 @@
 
 .btn-outline:hover {
   background: #ff9800;
+  color: white;
+}
+
+.btn {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(255,152,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
   color: white;
 }
 </style>

@@ -60,7 +60,7 @@
     <div style="max-height: 300px; overflow-y: auto;">
       {% if recent_activity %}
         {% for activity in recent_activity %}
-        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid #e9ecef; transition: all 0.2s ease;">
+        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-bottom: 1px solid #e9ecef;">
           <div style="width: 32px; height: 32px; border-radius: 50%; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d;">
             {% if activity.activity_type == 'entry_approved' %}
               <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
@@ -68,6 +68,14 @@
               <i data-lucide="x-circle" style="width:16px;height:16px;"></i>
             {% elif activity.activity_type == 'budget_created' %}
               <i data-lucide="plus-circle" style="width:16px;height:16px;"></i>
+            {% elif activity.activity_type == 'budget_increase' %}
+              <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+            {% elif activity.activity_type == 'budget_expense' %}
+              <i data-lucide="trending-down" style="width:16px;height:16px;"></i>
+            {% elif activity.activity_type == 'project_allocation_approved' %}
+              <i data-lucide="link" style="width:16px;height:16px;"></i>
+            {% elif activity.activity_type == 'project_allocation_requested' %}
+              <i data-lucide="clock" style="width:16px;height:16px;"></i>
             {% else %}
               <i data-lucide="dollar-sign" style="width:16px;height:16px;"></i>
             {% endif %}
@@ -83,10 +91,10 @@
             </div>
             {% if activity.amount_changed and activity.amount_changed > 0 %}
               <div style="font-size: 0.85em; margin-top: 4px;">
-                <span style="color: {% if 'increase' in activity.description or 'created' in activity.description %}#28a745{% else %}#dc3545{% endif %}; font-weight: 600;">
+                <span style="color: {% if 'increase' in activity.description or 'created' in activity.description or 'added' in activity.description %}#28a745{% else %}#dc3545{% endif %}; font-weight: 600;">
                   ₱{{ "%.2f"|format(activity.amount_changed|float) }}
                 </span>
-                {% if activity.old_balance is not none %}
+                {% if activity.old_balance is not none and activity.new_balance is not none %}
                   <span style="color: #6c757d; margin-left: 8px;">
                     Balance: ₱{{ "%.2f"|format(activity.old_balance|float) }} → ₱{{ "%.2f"|format(activity.new_balance|float) }}
                   </span>
@@ -186,16 +194,18 @@
                 ₱{{ "%.2f"|format(budget.total_expenses|float) }}
             </td>
             <td>
-                {% if budget.linked_projects %}
-                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                {% if budget.linked_projects and budget.linked_projects|length > 0 %}
+                <div class="linked-projects-container">
                     {% for project in budget.linked_projects %}
-                    <span class="status-badge" style="background: #e3f2fd; color: #1565c0; cursor: pointer; font-size: 0.7em; padding: 2px 6px;">
-                    {{ project.name[:15] }}{% if project.name|length > 15 %}...{% endif %}
-                    </span>
+                    <div class="project-pill status-{{ project.status|lower|replace(' ', '-') }}">
+                        <i data-lucide="folder" style="width:10px;height:10px; margin-right: 4px;"></i>
+                        <span class="project-name">{{ project.name[:20] }}{% if project.name|length > 20 %}...{% endif %}</span>
+                        <span class="project-status">{{ project.status[:1] }}</span>
+                    </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <span style="color: #6c757d;">—</span>
+                <span style="color: #6c757d; font-size: 0.85em;">No projects</span>
                 {% endif %}
             </td>
             <td>
@@ -272,9 +282,6 @@
 
 .table tbody tr:hover {
   background-color: #f8f9fa;
-  transform: translateY(-1px);
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .card {
@@ -284,12 +291,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 25px;
   border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-  transform: translateY(-2px);
 }
 
 .btn-outline {
@@ -311,8 +312,6 @@
 .btn-outline:hover {
   background: #ff9800;
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(255,152,0,0.3);
 }
 
 .btn {
@@ -333,8 +332,6 @@
 
 .btn:hover {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
   color: white;
 }
 
@@ -374,8 +371,6 @@
   background: #f8f9fa;
   border-color: #ff9800;
   color: #ff9800;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(255,152,0,0.2);
 }
 
 .pagination-btn.active {
@@ -386,10 +381,79 @@
   box-shadow: 0 2px 4px rgba(255,152,0,0.3);
 }
 
-.pagination-btn.active:hover {
-  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  color: white;
-  border-color: #ef6c00;
+/* Enhanced Linked Projects Styling */
+.linked-projects-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.project-pill {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  border: 1px solid;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  cursor: default;
+}
+
+.project-name {
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.project-status {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-size: 0.7em;
+  font-weight: 600;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* Status-specific colors for project pills */
+.project-pill.status-planned {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.project-pill.status-on-going {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+.project-pill.status-completed {
+  background: linear-gradient(135deg, #d4edda 0%, #b1dfbb 100%);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.project-pill.status-ongoing {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+.project-pill.status-in-progress {
+  background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%);
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+.project-pill.status-pending {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-color: #ffc107;
+  color: #856404;
 }
 </style>
 

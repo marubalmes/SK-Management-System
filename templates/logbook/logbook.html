@@ -9,24 +9,28 @@
     </div>
   </div>
 
-  <!-- Logbook Statistics -->
+  <!-- Logbook Statistics - UPDATED TO MATCH OTHER TEMPLATES -->
   <div class="card" style="margin-bottom: 20px;">
     <h4 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
       <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
       Logbook Statistics
     </h4>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ pagination.total_items }}</div>
-        <div style="color: #666;">Total Entries</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #90caf9;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #1565c0;">{{ pagination.total_items }}</div>
+        <div style="color: #0d47a1; font-weight: 600;">Total Entries</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="todayCount">0</div>
-        <div style="color: #666;">Today's Entries</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d4edda 0%, #b1dfbb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #28a745;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #155724;" id="todayCount">{{ today_count }}</div>
+        <div style="color: #155724; font-weight: 600;">Today's Entries</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="currentMonthCount">0</div>
-        <div style="color: #666;">This Month</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #ffc107;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #856404;" id="currentMonthCount">{{ current_month_count }}</div>
+        <div style="color: #856404; font-weight: 600;">This Month</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #17a2b8;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #0c5460;" id="withEvidenceCount">{{ with_evidence_count }}</div>
+        <div style="color: #0c5460; font-weight: 600;">With Evidence</div>
       </div>
     </div>
   </div>
@@ -323,14 +327,8 @@
   vertical-align: top;
 }
 
-.table tbody tr {
-  transition: background-color 0.2s ease;
-}
-
 .table tbody tr:hover {
   background-color: #f8f9fa;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .btn-secondary {
@@ -351,8 +349,6 @@
 
 .btn-secondary:hover {
   background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .card {
@@ -362,12 +358,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 25px;
   border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-  transform: translateY(-2px);
 }
 
 .form-control {
@@ -384,7 +374,6 @@
   border-color: #007bff;
   outline: none;
   box-shadow: 0 0 0 3px rgba(0,123,255,0.1), inset 0 1px 3px rgba(0,0,0,0.05);
-  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -407,8 +396,6 @@
 .btn-outline:hover {
   background: #ff9800;
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(255,152,0,0.3);
 }
 
 .btn {
@@ -429,8 +416,6 @@
 
 .btn:hover {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
   color: white;
 }
 
@@ -548,8 +533,6 @@
   background: #f8f9fa;
   border-color: #ff9800;
   color: #ff9800;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(255,152,0,0.2);
 }
 
 .pagination-btn.active {
@@ -558,12 +541,6 @@
   border-color: #ff9800;
   font-weight: 600;
   box-shadow: 0 2px 4px rgba(255,152,0,0.3);
-}
-
-.pagination-btn.active:hover {
-  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  color: white;
-  border-color: #ef6c00;
 }
 </style>
 
@@ -586,6 +563,7 @@ function filterTable() {
 
   let todayCount = 0;
   let currentMonthCount = 0;
+  let withEvidenceCount = 0;
   const today = new Date().toISOString().split('T')[0];
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -594,6 +572,7 @@ function filterTable() {
     const name = row.cells[0].textContent.toLowerCase();
     const sitio = row.cells[1].textContent.trim();
     const date = row.cells[4].textContent;
+    const hasEvidence = row.cells[6].querySelector('.view-evidence-btn') !== null;
 
     let matchesSearch = name.includes(searchValue);
     let matchesSitio = !sitioFilter || sitio === sitioFilter;
@@ -621,11 +600,17 @@ function filterTable() {
         currentMonthCount++;
       }
     }
+
+    // Count entries with evidence
+    if (matchesSearch && matchesSitio && matchesDate && hasEvidence) {
+      withEvidenceCount++;
+    }
   });
 
   // Update statistics
   document.getElementById('todayCount').textContent = todayCount;
   document.getElementById('currentMonthCount').textContent = currentMonthCount;
+  document.getElementById('withEvidenceCount').textContent = withEvidenceCount;
 }
 
 function resetFilters() {

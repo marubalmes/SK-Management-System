@@ -28,23 +28,27 @@
       <i data-lucide="bar-chart-3" style="width:18px;height:18px;"></i>
       Project Statistics
     </h4>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #007bff;">{{ pagination.total_items }}</div>
-        <div style="color: #666;">Total Projects</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #90caf9;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #1565c0;">{{ total_projects }}</div>
+        <div style="color: #0d47a1; font-weight: 600;">Total Projects</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="completedCount">0</div>
-        <div style="color: #666;">Completed</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #ffc107;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #856404;">{{ planned_projects }}</div>
+        <div style="color: #856404; font-weight: 600;">Planned</div>
       </div>
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #ffc107;" id="ongoingCount">0</div>
-        <div style="color: #666;">In Progress</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d1ecf1 0%, #a6e1ec 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #17a2b8;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #0c5460;">{{ ongoing_projects }}</div>
+        <div style="color: #0c5460; font-weight: 600;">On-going</div>
+      </div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d4edda 0%, #b1dfbb 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #28a745;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #155724;">{{ completed_projects }}</div>
+        <div style="color: #155724; font-weight: 600;">Completed</div>
       </div>
       {% if session.user.role == 'SK_Chairman' %}
-      <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <div style="font-size: 1.5em; font-weight: bold; color: #dc3545;" id="pendingApprovalCount">0</div>
-        <div style="color: #666;">Pending Approval</div>
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #ffc107;">
+        <div style="font-size: 1.5em; font-weight: bold; color: #856404;">{{ pending_approval_projects }}</div>
+        <div style="color: #856404; font-weight: 600;">Pending Approval</div>
       </div>
       {% endif %}
     </div>
@@ -316,17 +320,10 @@
   padding: 12px 15px;
   border-bottom: 1px solid #e9ecef;
   vertical-align: top;
-  transition: all 0.2s ease;
-}
-
-.table tbody tr {
-  transition: all 0.2s ease;
 }
 
 .table tbody tr:hover {
   background-color: #f8f9fa;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .btn-secondary {
@@ -347,8 +344,6 @@
 
 .btn-secondary:hover {
   background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .card {
@@ -358,12 +353,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-bottom: 25px;
   border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-  transform: translateY(-2px);
 }
 
 .form-control {
@@ -380,7 +369,6 @@
   border-color: #007bff;
   outline: none;
   box-shadow: 0 0 0 3px rgba(0,123,255,0.1), inset 0 1px 3px rgba(0,0,0,0.05);
-  transform: translateY(-1px);
 }
 
 .btn-outline {
@@ -403,8 +391,6 @@
 .btn-outline:hover {
   background: #ff9800;
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(255,152,0,0.3);
 }
 
 .btn {
@@ -425,8 +411,6 @@
 
 .btn:hover {
   background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255,152,0,0.4);
   color: white;
 }
 
@@ -475,13 +459,10 @@
   cursor: not-allowed !important;
   opacity: 0.7 !important;
   box-shadow: none !important;
-  transform: none !important;
 }
 
 .btn[style*="cursor: not-allowed"]:hover {
   background: #6c757d !important;
-  transform: none !important;
-  box-shadow: none !important;
 }
 
 /* Enhanced Pagination Styles */
@@ -508,8 +489,6 @@
   background: #f8f9fa;
   border-color: #ff9800;
   color: #ff9800;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(255,152,0,0.2);
 }
 
 .pagination-btn.active {
@@ -518,12 +497,6 @@
   border-color: #ff9800;
   font-weight: 600;
   box-shadow: 0 2px 4px rgba(255,152,0,0.3);
-}
-
-.pagination-btn.active:hover {
-  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
-  color: white;
-  border-color: #ef6c00;
 }
 
 /* Enhanced Linked Reports Styling */
@@ -543,14 +516,7 @@
   font-size: 0.75em;
   border: 1px solid #90caf9;
   box-shadow: 0 1px 2px rgba(144, 202, 249, 0.3);
-  transition: all 0.2s ease;
   cursor: default;
-}
-
-.report-pill:hover {
-  background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(144, 202, 249, 0.4);
 }
 
 .report-type {
@@ -584,9 +550,11 @@ function filterTable() {
   const toDate = document.getElementById('toDate').value;
   const rows = document.querySelectorAll('#projectsTable tbody tr');
 
-  let completedCount = 0;
+  let plannedCount = 0;
   let ongoingCount = 0;
+  let completedCount = 0;
   let pendingApprovalCount = 0;
+  let approvedCount = 0;
 
   rows.forEach(row => {
     const name = row.cells[0].textContent.toLowerCase();
@@ -630,18 +598,24 @@ function filterTable() {
 
     // Count visible items
     if (visible) {
-      if (status === 'Completed') completedCount++;
+      if (status === 'Planned') plannedCount++;
       if (status === 'On-going') ongoingCount++;
+      if (status === 'Completed') completedCount++;
       if (approvalText === 'pending') pendingApprovalCount++;
+      if (approvalText === 'approved') approvedCount++;
     }
   });
 
-  // Update statistics
-  document.getElementById('completedCount').textContent = completedCount;
-  document.getElementById('ongoingCount').textContent = ongoingCount;
-  if (document.getElementById('pendingApprovalCount')) {
-    document.getElementById('pendingApprovalCount').textContent = pendingApprovalCount;
-  }
+  // Update statistics in the template variables
+  // The actual counts are already passed from the backend
+  // This just updates any dynamic counts based on filtering
+  console.log('Filtered counts:', {
+    planned: plannedCount,
+    ongoing: ongoingCount,
+    completed: completedCount,
+    pending: pendingApprovalCount,
+    approved: approvedCount
+  });
 }
 
 function resetFilters() {
